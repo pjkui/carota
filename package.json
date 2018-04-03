@@ -1,5 +1,5 @@
 {
-  "name": "carota",
+  "name": "@tencent/carota",
   "author": "quinn pan (quinnpan@tencent.com)",
   "description": "Simple, flexible rich text rendering/editing on HTML Canvas",
   "version": "0.1.0",
