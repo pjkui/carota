@@ -362,7 +362,7 @@ exports.create = function (element, width, height) {
         ctx.translate(0, getVerticalOffset() - element.scrollTop);
 
         doc.draw(ctx, rect(0, element.scrollTop, logicalWidth, logicalHeight));
-        doc.drawSelection(ctx, selectDragStart || (document.activeElement === textArea));
+        // doc.drawSelection(ctx, selectDragStart || (document.activeElement === textArea));
     };
 
     dom.handleEvent(element, 'scroll', paint);
