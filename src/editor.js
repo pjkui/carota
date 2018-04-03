@@ -3,50 +3,68 @@ var carotaDoc = require('./doc');
 var dom = require('./dom');
 var rect = require('./rect');
 
-setInterval(function() {
-    var editors = document.querySelectorAll('.carotaEditorCanvas');
+// setInterval(function () {
+//     var editors = document.querySelectorAll('.carotaEditorCanvas');
 
-    var ev = document.createEvent('Event');
-    ev.initEvent('carotaEditorSharedTimer', true, true);
+//     var ev = document.createEvent('Event');
+//     ev.initEvent('carotaEditorSharedTimer', true, true);
 
-    // not in IE, apparently:
-    // var ev = new CustomEvent('carotaEditorSharedTimer');
+//     // not in IE, apparently:
+//     // var ev = new CustomEvent('carotaEditorSharedTimer');
 
-    for (var n = 0; n < editors.length; n++) {
-        editors[n].dispatchEvent(ev);
-    }
-}, 200);
+//     for (var n = 0; n < editors.length; n++) {
+//         editors[n].dispatchEvent(ev);
+//     }
+// }, 200);
 
-exports.create = function(element) {
+exports.create = function (element, width, height) {
+    var canvas,
+        spacer,
+        textAreaDiv,
+        textArea;
+    elementWidth = width || 800;
+    elementHeight = height || 600;
+    if (element) {
 
-    // We need the host element to be a container:
-    if (dom.effectiveStyle(element, 'position') !== 'absolute') {
-        element.style.position = 'relative';
-    }
+        // We need the host element to be a container:
+        if (dom.effectiveStyle(element, 'position') !== 'absolute') {
+            element.style.position = 'relative';
+        }
 
-    element.innerHTML =
-        '<div class="carotaSpacer">' +
+        element.innerHTML =
+            '<div class="carotaSpacer">' +
             '<canvas width="100" height="100" class="carotaEditorCanvas" style="position: absolute;"></canvas>' +
-        '</div>' +
-        '<div class="carotaTextArea" style="overflow: hidden; position: absolute; height: 0;">' +
+            '</div>' +
+            '<div class="carotaTextArea" style="overflow: hidden; position: absolute; height: 0;">' +
             '<textarea autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="0" ' +
             'style="position: absolute; padding: 0px; width: 1000px; height: 1em; ' +
             'outline: none; font-size: 4px;"></textarea>'
         '</div>';
 
-    var canvas = element.querySelector('canvas'),
-        spacer = element.querySelector('.carotaSpacer'),
-        textAreaDiv = element.querySelector('.carotaTextArea'),
-        textArea = element.querySelector('textarea'),
+        canvas = element.querySelector('canvas');
+        spacer = element.querySelector('.carotaSpacer');
+        textAreaDiv = element.querySelector('.carotaTextArea');
+        textArea = element.querySelector('textarea');
+    } else {
+        canvas = document.createElement('canvas');
+        element = document.createElement('div');
+        spacer = document.createElement('div');
+        textAreaDiv = document.createElement('div');
+        textArea = document.createElement('textarea');
+    }
+    canvas.width = elementWidth;
+    canvas.height = elementHeight;
+    var
         doc = carotaDoc(),
         keyboardSelect = 0,
-        keyboardX = null, nextKeyboardX = null,
+        keyboardX = null,
+        nextKeyboardX = null,
         selectDragStart = null,
         focusChar = null,
         textAreaContent = '',
         richClipboard = null,
         plainClipboard = null;
-    
+    doc.canvas = canvas;
     var toggles = {
         66: 'bold',
         73: 'italic',
@@ -54,18 +72,19 @@ exports.create = function(element) {
         83: 'strikeout'
     };
 
-    var exhausted = function(ordinal, direction) {
+    var exhausted = function (ordinal, direction) {
         return direction < 0 ? ordinal <= 0 : ordinal >= doc.frame.length - 1;
     };
 
-    var differentLine = function(caret1, caret2) {
+    var differentLine = function (caret1, caret2) {
         return (caret1.b <= caret2.t) ||
-               (caret2.b <= caret1.t);
+            (caret2.b <= caret1.t);
     };
 
-    var changeLine = function(ordinal, direction) {
+    var changeLine = function (ordinal, direction) {
 
-        var originalCaret = doc.getCaretCoords(ordinal), newCaret;
+        var originalCaret = doc.getCaretCoords(ordinal),
+            newCaret;
         nextKeyboardX = (keyboardX !== null) ? keyboardX : originalCaret.l;
 
         while (!exhausted(ordinal, direction)) {
@@ -94,8 +113,9 @@ exports.create = function(element) {
         return ordinal;
     };
 
-    var endOfline = function(ordinal, direction) {
-        var originalCaret = doc.getCaretCoords(ordinal), newCaret;
+    var endOfline = function (ordinal, direction) {
+        var originalCaret = doc.getCaretCoords(ordinal),
+            newCaret;
         while (!exhausted(ordinal, direction)) {
             ordinal += direction;
             newCaret = doc.getCaretCoords(ordinal);
@@ -107,7 +127,7 @@ exports.create = function(element) {
         return ordinal;
     };
 
-    var handleKey = function(key, selecting, ctrlKey) {
+    var handleKey = function (key, selecting, ctrlKey) {
         var start = doc.selection.start,
             end = doc.selection.end,
             length = doc.frame.length - 1,
@@ -278,7 +298,7 @@ exports.create = function(element) {
         return handled;
     };
 
-    dom.handleEvent(textArea, 'keydown', function(ev) {
+    dom.handleEvent(textArea, 'keydown', function (ev) {
         if (handleKey(ev.keyCode, ev.shiftKey, ev.ctrlKey)) {
             return false;
         }
@@ -286,28 +306,28 @@ exports.create = function(element) {
     });
 
     var verticalAlignment = 'top';
-    
-    doc.setVerticalAlignment = function(va) {
+
+    doc.setVerticalAlignment = function (va) {
         verticalAlignment = va;
         paint();
     }
 
     function getVerticalOffset() {
         var docHeight = doc.frame.bounds().h;
-        if (docHeight < element.clientHeight) { 
+        if (docHeight < elementHeight) {
             switch (verticalAlignment) {
                 case 'middle':
-                    return (element.clientHeight - docHeight) / 2;
+                    return (elementHeight - docHeight) / 2;
                 case 'bottom':
-                    return element.clientHeight - docHeight;
+                    return elementHeight - docHeight;
             }
         }
         return 0;
     }
 
-    var paint = function() {
+    var paint = function () {
 
-        var availableWidth = element.clientWidth * 1; // adjust to 0.5 to see if we draw in the wrong places!
+        var availableWidth = elementWidth * 1; // adjust to 0.5 to see if we draw in the wrong places!
         if (doc.width() !== availableWidth) {
             doc.width(availableWidth);
         }
@@ -315,20 +335,20 @@ exports.create = function(element) {
         var docHeight = doc.frame.bounds().h;
 
         var dpr = Math.max(1, window.devicePixelRatio || 1);
-        
-        var logicalWidth = Math.max(doc.frame.actualWidth(), element.clientWidth),
-            logicalHeight = element.clientHeight;
-        
+
+        var logicalWidth = Math.max(doc.frame.actualWidth(), elementWidth),
+            logicalHeight = elementHeight;
+
         canvas.width = dpr * logicalWidth;
         canvas.height = dpr * logicalHeight;
         canvas.style.width = logicalWidth + 'px';
         canvas.style.height = logicalHeight + 'px';
-        
+
         canvas.style.top = element.scrollTop + 'px';
         spacer.style.width = logicalWidth + 'px';
-        spacer.style.height = Math.max(docHeight, element.clientHeight) + 'px';
+        spacer.style.height = Math.max(docHeight, elementHeight) + 'px';
 
-        if (docHeight < (element.clientHeight - 50) &&
+        if (docHeight < (elementHeight - 50) &&
             doc.frame.actualWidth() <= availableWidth) {
             element.style.overflow = 'hidden';
         } else {
@@ -340,14 +360,14 @@ exports.create = function(element) {
 
         ctx.clearRect(0, 0, logicalWidth, logicalHeight);
         ctx.translate(0, getVerticalOffset() - element.scrollTop);
-        
+
         doc.draw(ctx, rect(0, element.scrollTop, logicalWidth, logicalHeight));
         doc.drawSelection(ctx, selectDragStart || (document.activeElement === textArea));
     };
 
     dom.handleEvent(element, 'scroll', paint);
 
-    dom.handleEvent(textArea, 'input', function() {
+    dom.handleEvent(textArea, 'input', function () {
         var newText = textArea.value;
         if (textAreaContent != newText) {
             textAreaContent = '';
@@ -359,7 +379,7 @@ exports.create = function(element) {
         }
     });
 
-    var updateTextArea = function() {
+    var updateTextArea = function () {
         focusChar = focusChar === null ? doc.selection.end : focusChar;
         var endChar = doc.byOrdinal(focusChar);
         focusChar = null;
@@ -369,7 +389,7 @@ exports.create = function(element) {
             textAreaDiv.style.top = bounds.t + 'px';
             textArea.focus();
             var scrollDownBy = Math.max(0, bounds.t + bounds.h -
-                    (element.scrollTop + element.clientHeight));
+                (element.scrollTop + elementHeight));
             if (scrollDownBy) {
                 element.scrollTop += scrollDownBy;
             }
@@ -378,7 +398,7 @@ exports.create = function(element) {
                 element.scrollTop -= scrollUpBy;
             }
             var scrollRightBy = Math.max(0, bounds.l -
-                (element.scrollLeft + element.clientWidth));
+                (element.scrollLeft + elementWidth));
             if (scrollRightBy) {
                 element.scrollLeft += scrollRightBy;
             }
@@ -391,12 +411,12 @@ exports.create = function(element) {
         textArea.value = textAreaContent;
         textArea.select();
 
-        setTimeout(function() {
+        setTimeout(function () {
             textArea.focus();
         }, 10);
     };
 
-    doc.selectionChanged(function(getformatting, takeFocus) {
+    doc.selectionChanged(function (getformatting, takeFocus) {
         paint();
         if (!selectDragStart) {
             if (takeFocus !== false) {
@@ -406,18 +426,18 @@ exports.create = function(element) {
     });
 
     function registerMouseEvent(name, handler) {
-        dom.handleMouseEvent(spacer, name, function(ev, x, y) {
+        dom.handleMouseEvent(spacer, name, function (ev, x, y) {
             handler(doc.byCoordinate(x, y - getVerticalOffset()));
         });
     }
 
-    registerMouseEvent('mousedown', function(node) {
+    registerMouseEvent('mousedown', function (node) {
         selectDragStart = node.ordinal;
         doc.select(node.ordinal, node.ordinal);
         keyboardX = null;
     });
 
-    registerMouseEvent('dblclick', function(node) {
+    registerMouseEvent('dblclick', function (node) {
         node = node.parent();
         if (node) {
             doc.select(node.ordinal, node.ordinal +
@@ -425,7 +445,7 @@ exports.create = function(element) {
         }
     });
 
-    registerMouseEvent('mousemove', function(node) {
+    registerMouseEvent('mousemove', function (node) {
         if (selectDragStart !== null) {
             if (node) {
                 focusChar = node.ordinal;
@@ -438,7 +458,7 @@ exports.create = function(element) {
         }
     });
 
-    registerMouseEvent('mouseup', function(node) {
+    registerMouseEvent('mouseup', function (node) {
         selectDragStart = null;
         keyboardX = null;
         updateTextArea();
@@ -447,10 +467,10 @@ exports.create = function(element) {
 
     var nextCaretToggle = new Date().getTime(),
         focused = false,
-        cachedWidth = element.clientWidth,
-        cachedHeight = element.clientHeight;
+        cachedWidth = elementWidth,
+        cachedHeight = elementHeight;
 
-    var update = function() {
+    var update = function () {
         var requirePaint = false;
         var newFocused = document.activeElement === textArea;
         if (focused !== newFocused) {
@@ -466,11 +486,11 @@ exports.create = function(element) {
             }
         }
 
-        if (element.clientWidth !== cachedWidth ||
-            element.clientHeight !== cachedHeight) {
+        if (elementWidth !== cachedWidth ||
+            elementHeight !== cachedHeight) {
             requirePaint = true;
-            cachedWidth =element.clientWidth;
-            cachedHeight = element.clientHeight;
+            cachedWidth = elementWidth;
+            cachedHeight = elementHeight;
         }
 
         if (requirePaint) {
@@ -482,5 +502,6 @@ exports.create = function(element) {
     update();
 
     doc.sendKey = handleKey;
+    doc.paint = paint;
     return doc;
 };

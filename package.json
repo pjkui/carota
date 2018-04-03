@@ -1,11 +1,11 @@
 {
   "name": "carota",
-  "author": "Daniel Earwicker (dan@earwicker.com)",
+  "author": "quinn pan (quinnpan@tencent.com)",
   "description": "Simple, flexible rich text rendering/editing on HTML Canvas",
-  "version": "0.1.5",
+  "version": "0.1.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/danielearwicker/carota.git"
+    "url": "http://git.oa.com/quinnpan/carota.git"
   },
   "main": "src/carota.js",
   "scripts": {

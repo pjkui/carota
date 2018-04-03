@@ -1,16 +1,16 @@
 var runs = require('./runs');
 var per = require('per');
 
-var tag = function(name, formattingProperty) {
-    return function(node, formatting) {
+var tag = function (name, formattingProperty) {
+    return function (node, formatting) {
         if (node.nodeName === name) {
             formatting[formattingProperty] = true;
         }
     };
 };
 
-var value = function(type, styleProperty, formattingProperty, transformValue) {
-    return function(node, formatting) {
+var value = function (type, styleProperty, formattingProperty, transformValue) {
+    return function (node, formatting) {
         var val = node[type] && node[type][styleProperty];
         if (val) {
             if (transformValue) {
@@ -21,31 +21,36 @@ var value = function(type, styleProperty, formattingProperty, transformValue) {
     };
 };
 
-var attrValue = function(styleProperty, formattingProperty, transformValue) {
+var attrValue = function (styleProperty, formattingProperty, transformValue) {
     return value('attributes', styleProperty, formattingProperty, transformValue);
 };
 
-var styleValue = function(styleProperty, formattingProperty, transformValue) {
+var styleValue = function (styleProperty, formattingProperty, transformValue) {
     return value('style', styleProperty, formattingProperty, transformValue);
 };
 
-var styleFlag = function(styleProperty, styleValue, formattingProperty) {
-    return function(node, formatting) {
+var styleFlag = function (styleProperty, styleValue, formattingProperty) {
+    return function (node, formatting) {
         if (node.style && node.style[styleProperty] === styleValue) {
             formatting[formattingProperty] = true;
         }
     };
 };
 
-var obsoleteFontSizes = [ 6, 7, 9, 10, 12, 16, 20, 30 ];
+var obsoleteFontSizes = [6, 7, 9, 10, 12, 16, 20, 30];
 
-var aligns = { left: true, center: true, right: true, justify: true };
+var aligns = {
+    left: true,
+    center: true,
+    right: true,
+    justify: true
+};
 
-var checkAlign = function(value) {
+var checkAlign = function (value) {
     return aligns[value] ? value : 'left';
 };
 
-var fontName = function(name) {
+var fontName = function (name) {
     var s = name.split(/\s*,\s*/g);
     if (s.length == 0) {
         return name;
@@ -85,27 +90,27 @@ var handlers = [
     styleFlag('textDecoration', 'line-through', 'strikeout'),
     styleValue('color', 'color'),
     styleValue('fontFamily', 'font', fontName),
-    styleValue('fontSize', 'size', function(size) {
-        var m = size.match(/^([\d\.]+)pt$/);
+    styleValue('fontSize', 'size', function (size) {
+        var m = size.match(/^([\d\.]+)p/);
         return m ? parseFloat(m[1]) : 10
     }),
     styleValue('textAlign', 'align', checkAlign),
-    function(node, formatting) {
+    function (node, formatting) {
         if (node.nodeName === 'SUB') {
             formatting.script = 'sub';
         }
     },
-    function(node, formatting) {
+    function (node, formatting) {
         if (node.nodeName === 'SUPER') {
             formatting.script = 'super';
         }
     },
-    function(node, formatting) {
+    function (node, formatting) {
         if (node.nodeName === 'CODE') {
             formatting.font = 'monospace';
         }
     },
-    function(node, formatting) {
+    function (node, formatting) {
         var size = headings[node.nodeName];
         if (size) {
             formatting.size = size;
@@ -114,32 +119,35 @@ var handlers = [
     attrValue('color', 'color'),
     attrValue('face', 'font', fontName),
     attrValue('align', 'align', checkAlign),
-    attrValue('size', 'size', function(size) {
+    attrValue('size', 'size', function (size) {
         return obsoleteFontSizes[size] || 10;
     })
 ];
 
-var newLines = [ 'BR', 'P', 'H1', 'H2', 'H3', 'H4', 'H5' ];
+var newLines = ['BR', 'P', 'H1', 'H2', 'H3', 'H4', 'H5'];
 var isNewLine = {};
-newLines.forEach(function(name) {
+newLines.forEach(function (name) {
     isNewLine[name] = true;
 });
 
-exports.parse = function(html, classes) {
+exports.parse = function (html, classes) {
     var root = html;
     if (typeof root === 'string') {
         root = document.createElement('div');
         root.innerHTML = html;
     }
 
-    var result = [], inSpace = true;
+    var result = [],
+        inSpace = true;
     var cons = per(runs.consolidate()).into(result);
-    var emit = function(text, formatting) {
+    var emit = function (text, formatting) {
         cons.submit(Object.create(formatting, {
-            text: { value: text }
+            text: {
+                value: text
+            }
         }));
     };
-    var dealWithSpaces = function(text, formatting) {
+    var dealWithSpaces = function (text, formatting) {
         text = text.replace(/\n+\s*/g, ' ');
         var fullLength = text.length;
         text = text.replace(/^\s+/, '');
@@ -165,17 +173,17 @@ exports.parse = function(html, classes) {
 
             var classNames = node.attributes['class'];
             if (classNames) {
-                classNames.value.split(' ').forEach(function(cls) {
+                classNames.value.split(' ').forEach(function (cls) {
                     cls = classes[cls];
                     if (cls) {
-                        Object.keys(cls).forEach(function(key) {
+                        Object.keys(cls).forEach(function (key) {
                             formatting[key] = cls[key];
                         });
                     }
                 })
             }
 
-            handlers.forEach(function(handler) {
+            handlers.forEach(function (handler) {
                 handler(node, formatting);
             });
             if (node.childNodes) {
@@ -192,4 +200,3 @@ exports.parse = function(html, classes) {
     recurse(root, {});
     return result;
 };
-
