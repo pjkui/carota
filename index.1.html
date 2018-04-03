@@ -79,7 +79,7 @@
 
 
     <div id="exampleEditor"></div>
-    <canvas id="exampleEditorCanvas"></canvas>
+    <canvas id="exampleEditorCanvas" width="600" height="300"></canvas>
 
     <div id="examplePersistence">
         <div>
@@ -271,14 +271,16 @@
     <script>
         window.onload = function () {
             var elem = document.querySelector('#exampleEditor1');
-            var exampleEditor = carota.editor.create(elem);
+            var exampleEditor = carota.editor.create(elem, 600, 300);
             window.ee = exampleEditor;
             var targetCanvas = document.getElementById('exampleEditorCanvas');
 
             window.getResult = function () {
                 var ctx = targetCanvas.getContext('2d');
+                ctx.clearRect(0, 0, targetCanvas.width, targetCanvas.height);
                 var img = new Image();
                 img.src = ee.canvas.toDataURL('image/png');
+
                 img.onload = function () {
                     ctx.drawImage(img, 1, 1);
                 }
@@ -306,6 +308,7 @@
                 try {
                     manuallyChangingJson++;
                     exampleEditor.load(JSON.parse(persistenceTextArea.value), false);
+                    getResult();
                 } catch (x) {
                     // ignore if syntax errors
                 } finally {

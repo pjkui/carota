@@ -13,11 +13,13 @@
     after" a word - even if that word happens to be zero characters long!
  */
 
-module.exports = function(codes) {
+module.exports = function (codes) {
 
-    var word = null, trailingSpaces = null, newLine = true;
+    var word = null,
+        trailingSpaces = null,
+        newLine = true;
 
-    return function(emit, inputChar) {
+    return function (emit, inputChar) {
 
         var endOfWord;
         if (inputChar.char === null) {
@@ -28,36 +30,44 @@ module.exports = function(codes) {
                 newLine = false;
             }
             if (typeof inputChar.char === 'string') {
-	            switch (inputChar.char) {
-	                case ' ':
-	                    if (!trailingSpaces) {
-	                        trailingSpaces = inputChar;
-	                    }
-	                    break;
-	                case '\n':
-	                    endOfWord = true;
-	                    newLine = true;
-	                    break;
-	                default:
-	                    if (trailingSpaces) {
-	                        endOfWord = true;
-	                    }
+                switch (inputChar.char) {
+                    case ' ':
+                        if (!trailingSpaces) {
+                            trailingSpaces = inputChar;
+                        }
+                        break;
+                    case '\n':
+                        endOfWord = true;
+                        newLine = true;
+                        break;
+                    default:
+                        if (escape(inputChar.char).indexOf("%u") > -1) {
+                            //如果是utf8字符则进行分词
+                            if (!trailingSpaces) {
+                                trailingSpaces = inputChar;
+                            }
+                        }
+
+                        if (trailingSpaces) {
+                            endOfWord = true;
+                        }
+
                 }
             } else {
                 var code = codes(inputChar.char);
                 if (code.block || code.eof) {
                     endOfWord = true;
                     newLine = true;
-                } 
+                }
             }
         }
         if (endOfWord) {
             if (word && !word.equals(inputChar)) {
                 if (emit({
-                    text: word,
-                    spaces: trailingSpaces || inputChar,
-                    end: inputChar
-                }) === false) {
+                        text: word,
+                        spaces: trailingSpaces || inputChar,
+                        end: inputChar
+                    }) === false) {
                     return false;
                 }
                 trailingSpaces = null;
