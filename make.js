@@ -1,7 +1,7 @@
 var webmake = require('webmake');
 var minify = require('node-minify');
 
-webmake('src/carota.js', { output: 'carota-debug.js' }, function(result) {
+webmake('src/carota.js', { output: 'carota-debug.js' ,sourceMap :true}, function(result) {
     if (!result) {
         console.log('All good');
     } else {

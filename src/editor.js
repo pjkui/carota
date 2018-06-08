@@ -17,13 +17,16 @@ var rect = require('./rect');
 //     }
 // }, 200);
 
-exports.create = function (element, width, height) {
+exports.create = function (element, width, height,worddwrap) {
     var canvas,
         spacer,
         textAreaDiv,
         textArea;
     elementWidth = width || 800;
     elementHeight = height || 600;
+    // wordwrap default value is true
+    worddwrap = worddwrap==false ? false : true;
+    window.carota.worddwrap = worddwrap;
     if (element) {
 
         // We need the host element to be a container:
