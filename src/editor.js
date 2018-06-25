@@ -17,494 +17,515 @@ var rect = require('./rect');
 //     }
 // }, 200);
 
-exports.create = function (element, width, height,worddwrap) {
-    var canvas,
-        spacer,
-        textAreaDiv,
-        textArea;
-    elementWidth = width || 800;
-    elementHeight = height || 600;
-    // wordwrap default value is true
-    worddwrap = worddwrap==false ? false : true;
-    window.carota.worddwrap = worddwrap;
-    if (element) {
+exports.create = function (element, width, height, wordwrap = true, scale = 1) {
+  var canvas,
+    spacer,
+    textAreaDiv,
+    textArea;
+  var elementWidth = width || 800;
+  var elementHeight = height || 600;
+  // wordwrap default value is true
+  wordwrap = !!wordwrap;
+  window.carota.wordwrap = wordwrap;
+  window.carota.scale = isNaN(scale) ? 1 : scale;
 
-        // We need the host element to be a container:
-        if (dom.effectiveStyle(element, 'position') !== 'absolute') {
-            element.style.position = 'relative';
-        }
+  if (element) {
 
-        element.innerHTML =
-            '<div class="carotaSpacer">' +
-            '<canvas width="100" height="100" class="carotaEditorCanvas" style="position: absolute;"></canvas>' +
-            '</div>' +
-            '<div class="carotaTextArea" style="overflow: hidden; position: absolute; height: 0;">' +
-            '<textarea autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="0" ' +
-            'style="position: absolute; padding: 0px; width: 1000px; height: 1em; ' +
-            'outline: none; font-size: 4px;"></textarea>'
-        '</div>';
-
-        canvas = element.querySelector('canvas');
-        spacer = element.querySelector('.carotaSpacer');
-        textAreaDiv = element.querySelector('.carotaTextArea');
-        textArea = element.querySelector('textarea');
-    } else {
-        canvas = document.createElement('canvas');
-        element = document.createElement('div');
-        spacer = document.createElement('div');
-        textAreaDiv = document.createElement('div');
-        textArea = document.createElement('textarea');
-    }
-    canvas.width = elementWidth;
-    canvas.height = elementHeight;
-    var
-        doc = carotaDoc(),
-        keyboardSelect = 0,
-        keyboardX = null,
-        nextKeyboardX = null,
-        selectDragStart = null,
-        focusChar = null,
-        textAreaContent = '',
-        richClipboard = null,
-        plainClipboard = null;
-    doc.canvas = canvas;
-    var toggles = {
-        66: 'bold',
-        73: 'italic',
-        85: 'underline',
-        83: 'strikeout'
-    };
-
-    var exhausted = function (ordinal, direction) {
-        return direction < 0 ? ordinal <= 0 : ordinal >= doc.frame.length - 1;
-    };
-
-    var differentLine = function (caret1, caret2) {
-        return (caret1.b <= caret2.t) ||
-            (caret2.b <= caret1.t);
-    };
-
-    var changeLine = function (ordinal, direction) {
-
-        var originalCaret = doc.getCaretCoords(ordinal),
-            newCaret;
-        nextKeyboardX = (keyboardX !== null) ? keyboardX : originalCaret.l;
-
-        while (!exhausted(ordinal, direction)) {
-            ordinal += direction;
-            newCaret = doc.getCaretCoords(ordinal);
-            if (differentLine(newCaret, originalCaret)) {
-                break;
-            }
-        }
-
-        originalCaret = newCaret;
-        while (!exhausted(ordinal, direction)) {
-            if ((direction > 0 && newCaret.l >= nextKeyboardX) ||
-                (direction < 0 && newCaret.l <= nextKeyboardX)) {
-                break;
-            }
-
-            ordinal += direction;
-            newCaret = doc.getCaretCoords(ordinal);
-            if (differentLine(newCaret, originalCaret)) {
-                ordinal -= direction;
-                break;
-            }
-        }
-
-        return ordinal;
-    };
-
-    var endOfline = function (ordinal, direction) {
-        var originalCaret = doc.getCaretCoords(ordinal),
-            newCaret;
-        while (!exhausted(ordinal, direction)) {
-            ordinal += direction;
-            newCaret = doc.getCaretCoords(ordinal);
-            if (differentLine(newCaret, originalCaret)) {
-                ordinal -= direction;
-                break;
-            }
-        }
-        return ordinal;
-    };
-
-    var handleKey = function (key, selecting, ctrlKey) {
-        var start = doc.selection.start,
-            end = doc.selection.end,
-            length = doc.frame.length - 1,
-            handled = false;
-
-        nextKeyboardX = null;
-
-        if (!selecting) {
-            keyboardSelect = 0;
-        } else if (!keyboardSelect) {
-            switch (key) {
-                case 37: // left arrow
-                case 38: // up - find character above
-                case 36: // start of line
-                case 33: // page up
-                    keyboardSelect = -1;
-                    break;
-                case 39: // right arrow
-                case 40: // down arrow - find character below
-                case 35: // end of line
-                case 34: // page down
-                    keyboardSelect = 1;
-                    break;
-            }
-        }
-
-        var ordinal = keyboardSelect === 1 ? end : start;
-
-        var changingCaret = false;
-        switch (key) {
-            case 37: // left arrow
-                if (!selecting && start != end) {
-                    ordinal = start;
-                } else {
-                    if (ordinal > 0) {
-                        if (ctrlKey) {
-                            var wordInfo = doc.wordContainingOrdinal(ordinal);
-                            if (wordInfo.ordinal === ordinal) {
-                                ordinal = wordInfo.index > 0 ? doc.wordOrdinal(wordInfo.index - 1) : 0;
-                            } else {
-                                ordinal = wordInfo.ordinal;
-                            }
-                        } else {
-                            ordinal--;
-                        }
-                    }
-                }
-                changingCaret = true;
-                break;
-            case 39: // right arrow
-                if (!selecting && start != end) {
-                    ordinal = end;
-                } else {
-                    if (ordinal < length) {
-                        if (ctrlKey) {
-                            var wordInfo = doc.wordContainingOrdinal(ordinal);
-                            ordinal = wordInfo.ordinal + wordInfo.word.length;
-                        } else {
-                            ordinal++;
-                        }
-                    }
-                }
-                changingCaret = true;
-                break;
-            case 40: // down arrow - find character below
-                ordinal = changeLine(ordinal, 1);
-                changingCaret = true;
-                break;
-            case 38: // up - find character above
-                ordinal = changeLine(ordinal, -1);
-                changingCaret = true;
-                break;
-            case 36: // start of line
-                ordinal = endOfline(ordinal, -1);
-                changingCaret = true;
-                break;
-            case 35: // end of line
-                ordinal = endOfline(ordinal, 1);
-                changingCaret = true;
-                break;
-            case 33: // page up
-                ordinal = 0;
-                changingCaret = true;
-                break;
-            case 34: // page down
-                ordinal = length;
-                changingCaret = true;
-                break;
-            case 8: // backspace
-                if (start === end && start > 0) {
-                    doc.range(start - 1, start).clear();
-                    focusChar = start - 1;
-                    doc.select(focusChar, focusChar);
-                    handled = true;
-                }
-                break;
-            case 46: // del
-                if (start === end && start < length) {
-                    doc.range(start, start + 1).clear();
-                    handled = true;
-                }
-                break;
-            case 90: // Z undo
-                if (ctrlKey) {
-                    handled = true;
-                    doc.performUndo();
-                }
-                break;
-            case 89: // Y undo
-                if (ctrlKey) {
-                    handled = true;
-                    doc.performUndo(true);
-                }
-                break;
-            case 65: // A select all
-                if (ctrlKey) {
-                    handled = true;
-                    doc.select(0, length);
-                }
-                break;
-            case 67: // C - copy to clipboard
-            case 88: // X - cut to clipboard
-                if (ctrlKey) {
-                    // Allow standard handling to take place as well
-                    richClipboard = doc.selectedRange().save();
-                    plainClipboard = doc.selectedRange().plainText();
-                }
-                break;
-        }
-
-        var toggle = toggles[key];
-        if (ctrlKey && toggle) {
-            var selRange = doc.selectedRange();
-            selRange.setFormatting(toggle, selRange.getFormatting()[toggle] !== true);
-            paint();
-            handled = true;
-        }
-
-        if (changingCaret) {
-            switch (keyboardSelect) {
-                case 0:
-                    start = end = ordinal;
-                    break;
-                case -1:
-                    start = ordinal;
-                    break;
-                case 1:
-                    end = ordinal;
-                    break;
-            }
-
-            if (start === end) {
-                keyboardSelect = 0;
-            } else {
-                if (start > end) {
-                    keyboardSelect = -keyboardSelect;
-                    var t = end;
-                    end = start;
-                    start = t;
-                }
-            }
-            focusChar = ordinal;
-            doc.select(start, end);
-            handled = true;
-        }
-
-        keyboardX = nextKeyboardX;
-        return handled;
-    };
-
-    dom.handleEvent(textArea, 'keydown', function (ev) {
-        if (handleKey(ev.keyCode, ev.shiftKey, ev.ctrlKey)) {
-            return false;
-        }
-        console.log(ev.which);
-    });
-
-    var verticalAlignment = 'top';
-
-    doc.setVerticalAlignment = function (va) {
-        verticalAlignment = va;
-        paint();
+    // We need the host element to be a container:
+    if (dom.effectiveStyle(element, 'position') !== 'absolute') {
+      element.style.position = 'relative';
     }
 
-    function getVerticalOffset() {
-        var docHeight = doc.frame.bounds().h;
-        if (docHeight < elementHeight) {
-            switch (verticalAlignment) {
-                case 'middle':
-                    return (elementHeight - docHeight) / 2;
-                case 'bottom':
-                    return elementHeight - docHeight;
-            }
-        }
-        return 0;
+    element.innerHTML =
+      '<div class="carotaSpacer">' +
+      '<canvas width="100" height="100" class="carotaEditorCanvas" style="position: absolute;"></canvas>' +
+      '</div>' +
+      '<div class="carotaTextArea" style="overflow: hidden; position: absolute; height: 0;">' +
+      '<textarea autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="0" ' +
+      'style="position: absolute; padding: 0px; width: 1000px; height: 1em; ' +
+      'outline: none; font-size: 4px;"></textarea>'
+    '</div>';
+
+    canvas = element.querySelector('canvas');
+    spacer = element.querySelector('.carotaSpacer');
+    textAreaDiv = element.querySelector('.carotaTextArea');
+    textArea = element.querySelector('textarea');
+  } else {
+    canvas = document.createElement('canvas');
+    element = document.createElement('div');
+    spacer = document.createElement('div');
+    textAreaDiv = document.createElement('div');
+    textArea = document.createElement('textarea');
+  }
+  canvas.width = elementWidth;
+  canvas.height = elementHeight;
+  var
+    doc = carotaDoc(),
+    keyboardSelect = 0,
+    keyboardX = null,
+    nextKeyboardX = null,
+    selectDragStart = null,
+    focusChar = null,
+    textAreaContent = '',
+    richClipboard = null,
+    plainClipboard = null;
+  doc.canvas = canvas;
+  var toggles = {
+    66: 'bold',
+    73: 'italic',
+    85: 'underline',
+    83: 'strikeout'
+  };
+
+  var exhausted = function (ordinal, direction) {
+    return direction < 0 ? ordinal <= 0 : ordinal >= doc.frame.length - 1;
+  };
+
+  var differentLine = function (caret1, caret2) {
+    return (caret1.b <= caret2.t) ||
+      (caret2.b <= caret1.t);
+  };
+
+  var changeLine = function (ordinal, direction) {
+
+    var originalCaret = doc.getCaretCoords(ordinal),
+      newCaret;
+    nextKeyboardX = (keyboardX !== null) ? keyboardX : originalCaret.l;
+
+    while (!exhausted(ordinal, direction)) {
+      ordinal += direction;
+      newCaret = doc.getCaretCoords(ordinal);
+      if (differentLine(newCaret, originalCaret)) {
+        break;
+      }
     }
 
-    var paint = function () {
+    originalCaret = newCaret;
+    while (!exhausted(ordinal, direction)) {
+      if ((direction > 0 && newCaret.l >= nextKeyboardX) ||
+        (direction < 0 && newCaret.l <= nextKeyboardX)) {
+        break;
+      }
 
-        var availableWidth = elementWidth * 1; // adjust to 0.5 to see if we draw in the wrong places!
-        if (doc.width() !== availableWidth) {
-            doc.width(availableWidth);
-        }
+      ordinal += direction;
+      newCaret = doc.getCaretCoords(ordinal);
+      if (differentLine(newCaret, originalCaret)) {
+        ordinal -= direction;
+        break;
+      }
+    }
 
-        var docHeight = doc.frame.bounds().h;
+    return ordinal;
+  };
 
-        var dpr = Math.max(1, window.devicePixelRatio || 1);
+  var endOfline = function (ordinal, direction) {
+    var originalCaret = doc.getCaretCoords(ordinal),
+      newCaret;
+    while (!exhausted(ordinal, direction)) {
+      ordinal += direction;
+      newCaret = doc.getCaretCoords(ordinal);
+      if (differentLine(newCaret, originalCaret)) {
+        ordinal -= direction;
+        break;
+      }
+    }
+    return ordinal;
+  };
 
-        var logicalWidth = Math.max(doc.frame.actualWidth(), elementWidth),
-            logicalHeight = elementHeight;
+  var handleKey = function (key, selecting, ctrlKey) {
+    var start = doc.selection.start,
+      end = doc.selection.end,
+      length = doc.frame.length - 1,
+      handled = false;
 
-        canvas.width = dpr * logicalWidth;
-        canvas.height = dpr * logicalHeight;
-        canvas.style.width = logicalWidth + 'px';
-        canvas.style.height = logicalHeight + 'px';
+    nextKeyboardX = null;
 
-        canvas.style.top = element.scrollTop + 'px';
-        spacer.style.width = logicalWidth + 'px';
-        spacer.style.height = Math.max(docHeight, elementHeight) + 'px';
+    if (!selecting) {
+      keyboardSelect = 0;
+    } else if (!keyboardSelect) {
+      switch (key) {
+        case 37: // left arrow
+        case 38: // up - find character above
+        case 36: // start of line
+        case 33: // page up
+          keyboardSelect = -1;
+          break;
+        case 39: // right arrow
+        case 40: // down arrow - find character below
+        case 35: // end of line
+        case 34: // page down
+          keyboardSelect = 1;
+          break;
+      }
+    }
 
-        if (docHeight < (elementHeight - 50) &&
-            doc.frame.actualWidth() <= availableWidth) {
-            element.style.overflow = 'hidden';
+    var ordinal = keyboardSelect === 1 ? end : start;
+
+    var changingCaret = false;
+    switch (key) {
+      case 37: // left arrow
+        if (!selecting && start != end) {
+          ordinal = start;
         } else {
-            element.style.overflow = 'auto';
+          if (ordinal > 0) {
+            if (ctrlKey) {
+              var wordInfo = doc.wordContainingOrdinal(ordinal);
+              if (wordInfo.ordinal === ordinal) {
+                ordinal = wordInfo.index > 0 ? doc.wordOrdinal(wordInfo.index - 1) : 0;
+              } else {
+                ordinal = wordInfo.ordinal;
+              }
+            } else {
+              ordinal--;
+            }
+          }
         }
-
-        var ctx = canvas.getContext('2d');
-        ctx.scale(dpr, dpr);
-
-        ctx.clearRect(0, 0, logicalWidth, logicalHeight);
-        ctx.translate(0, getVerticalOffset() - element.scrollTop);
-
-        doc.draw(ctx, rect(0, element.scrollTop, logicalWidth, logicalHeight));
-        // doc.drawSelection(ctx, selectDragStart || (document.activeElement === textArea));
-    };
-
-    dom.handleEvent(element, 'scroll', paint);
-
-    dom.handleEvent(textArea, 'input', function () {
-        var newText = textArea.value;
-        if (textAreaContent != newText) {
-            textAreaContent = '';
-            textArea.value = '';
-            if (newText === plainClipboard) {
-                newText = richClipboard;
+        changingCaret = true;
+        break;
+      case 39: // right arrow
+        if (!selecting && start != end) {
+          ordinal = end;
+        } else {
+          if (ordinal < length) {
+            if (ctrlKey) {
+              var wordInfo = doc.wordContainingOrdinal(ordinal);
+              ordinal = wordInfo.ordinal + wordInfo.word.length;
+            } else {
+              ordinal++;
             }
-            doc.insert(newText);
+          }
         }
-    });
-
-    var updateTextArea = function () {
-        focusChar = focusChar === null ? doc.selection.end : focusChar;
-        var endChar = doc.byOrdinal(focusChar);
-        focusChar = null;
-        if (endChar) {
-            var bounds = endChar.bounds();
-            textAreaDiv.style.left = bounds.l + 'px';
-            textAreaDiv.style.top = bounds.t + 'px';
-            textArea.focus();
-            var scrollDownBy = Math.max(0, bounds.t + bounds.h -
-                (element.scrollTop + elementHeight));
-            if (scrollDownBy) {
-                element.scrollTop += scrollDownBy;
-            }
-            var scrollUpBy = Math.max(0, element.scrollTop - bounds.t);
-            if (scrollUpBy) {
-                element.scrollTop -= scrollUpBy;
-            }
-            var scrollRightBy = Math.max(0, bounds.l -
-                (element.scrollLeft + elementWidth));
-            if (scrollRightBy) {
-                element.scrollLeft += scrollRightBy;
-            }
-            var scrollLeftBy = Math.max(0, element.scrollLeft - bounds.l);
-            if (scrollLeftBy) {
-                element.scrollLeft -= scrollLeftBy;
-            }
+        changingCaret = true;
+        break;
+      case 40: // down arrow - find character below
+        ordinal = changeLine(ordinal, 1);
+        changingCaret = true;
+        break;
+      case 38: // up - find character above
+        ordinal = changeLine(ordinal, -1);
+        changingCaret = true;
+        break;
+      case 36: // start of line
+        ordinal = endOfline(ordinal, -1);
+        changingCaret = true;
+        break;
+      case 35: // end of line
+        ordinal = endOfline(ordinal, 1);
+        changingCaret = true;
+        break;
+      case 33: // page up
+        ordinal = 0;
+        changingCaret = true;
+        break;
+      case 34: // page down
+        ordinal = length;
+        changingCaret = true;
+        break;
+      case 8: // backspace
+        if (start === end && start > 0) {
+          doc.range(start - 1, start).clear();
+          focusChar = start - 1;
+          doc.select(focusChar, focusChar);
+          handled = true;
         }
-        textAreaContent = doc.selectedRange().plainText();
-        textArea.value = textAreaContent;
-        textArea.select();
-
-        setTimeout(function () {
-            textArea.focus();
-        }, 10);
-    };
-
-    doc.selectionChanged(function (getformatting, takeFocus) {
-        paint();
-        if (!selectDragStart) {
-            if (takeFocus !== false) {
-                updateTextArea();
-            }
+        break;
+      case 46: // del
+        if (start === end && start < length) {
+          doc.range(start, start + 1).clear();
+          handled = true;
         }
-    });
-
-    function registerMouseEvent(name, handler) {
-        dom.handleMouseEvent(spacer, name, function (ev, x, y) {
-            handler(doc.byCoordinate(x, y - getVerticalOffset()));
-        });
+        break;
+      case 90: // Z undo
+        if (ctrlKey) {
+          handled = true;
+          doc.performUndo();
+        }
+        break;
+      case 89: // Y undo
+        if (ctrlKey) {
+          handled = true;
+          doc.performUndo(true);
+        }
+        break;
+      case 65: // A select all
+        if (ctrlKey) {
+          handled = true;
+          doc.select(0, length);
+        }
+        break;
+      case 67: // C - copy to clipboard
+      case 88: // X - cut to clipboard
+        if (ctrlKey) {
+          // Allow standard handling to take place as well
+          richClipboard = doc.selectedRange().save();
+          plainClipboard = doc.selectedRange().plainText();
+        }
+        break;
     }
 
-    registerMouseEvent('mousedown', function (node) {
-        selectDragStart = node.ordinal;
-        doc.select(node.ordinal, node.ordinal);
-        keyboardX = null;
-    });
+    var toggle = toggles[key];
+    if (ctrlKey && toggle) {
+      var selRange = doc.selectedRange();
+      selRange.setFormatting(toggle, selRange.getFormatting()[toggle] !== true);
+      paint();
+      handled = true;
+    }
 
-    registerMouseEvent('dblclick', function (node) {
-        node = node.parent();
-        if (node) {
-            doc.select(node.ordinal, node.ordinal +
-                (node.word ? node.word.text.length : node.length));
+    if (changingCaret) {
+      switch (keyboardSelect) {
+        case 0:
+          start = end = ordinal;
+          break;
+        case -1:
+          start = ordinal;
+          break;
+        case 1:
+          end = ordinal;
+          break;
+      }
+
+      if (start === end) {
+        keyboardSelect = 0;
+      } else {
+        if (start > end) {
+          keyboardSelect = -keyboardSelect;
+          var t = end;
+          end = start;
+          start = t;
         }
-    });
+      }
+      focusChar = ordinal;
+      doc.select(start, end);
+      handled = true;
+    }
 
-    registerMouseEvent('mousemove', function (node) {
-        if (selectDragStart !== null) {
-            if (node) {
-                focusChar = node.ordinal;
-                if (selectDragStart > node.ordinal) {
-                    doc.select(node.ordinal, selectDragStart);
-                } else {
-                    doc.select(selectDragStart, node.ordinal);
-                }
-            }
-        }
-    });
+    keyboardX = nextKeyboardX;
+    return handled;
+  };
 
-    registerMouseEvent('mouseup', function (node) {
-        selectDragStart = null;
-        keyboardX = null;
+  dom.handleEvent(textArea, 'keydown', function (ev) {
+    if (handleKey(ev.keyCode, ev.shiftKey, ev.ctrlKey)) {
+      return false;
+    }
+    console.log(ev.which);
+  });
+
+  var verticalAlignment = 'top';
+
+  doc.setVerticalAlignment = function (va) {
+    verticalAlignment = va;
+    paint();
+  }
+
+  function getVerticalOffset() {
+    var docHeight = doc.frame.bounds().h;
+    if (docHeight < elementHeight) {
+      switch (verticalAlignment) {
+        case 'middle':
+          return (elementHeight - docHeight) / 2;
+        case 'bottom':
+          return elementHeight - docHeight;
+      }
+    }
+    return 0;
+  }
+
+  var paint = function () {
+    var availableWidth = elementWidth * 1; // adjust to 0.5 to see if we draw in the wrong places!
+    if (doc.width() !== availableWidth) {
+      doc.width(availableWidth);
+    }
+
+    var docHeight = doc.frame.bounds().h;
+
+    var dpr = Math.max(1, window.devicePixelRatio || 1);
+
+    var logicalWidth = Math.max(doc.frame.actualWidth(), elementWidth),
+      logicalHeight = elementHeight;
+
+    canvas.width = dpr * logicalWidth * window.carota.scale;
+    canvas.height = dpr * logicalHeight * window.carota.scale;
+    canvas.style.width = logicalWidth + 'px';
+    canvas.style.height = logicalHeight + 'px';
+
+    canvas.style.top = element.scrollTop + 'px';
+    spacer.style.width = logicalWidth + 'px';
+    spacer.style.height = Math.max(docHeight, elementHeight) + 'px';
+
+    if (docHeight < (elementHeight - 50) &&
+      doc.frame.actualWidth() <= availableWidth) {
+      element.style.overflow = 'hidden';
+    } else {
+      element.style.overflow = 'auto';
+    }
+
+    var ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+
+    ctx.clearRect(0, 0, logicalWidth, logicalHeight);
+    ctx.translate(0, getVerticalOffset() - element.scrollTop);
+
+    doc.draw(ctx, rect(0, element.scrollTop, logicalWidth, logicalHeight));
+  };
+
+  var setScale = function (scale, option) {
+    var op = Object.assign({
+      update: true
+    }, option);
+
+    var isChanged = false;
+
+    if (!isNaN(scale) && scale > 0) {
+      if (Math.abs(window.carota.scale - scale) > 1e-7) {
+        window.carota.scale = scale
+        isChanged = true;
+      }
+    }
+
+    if (isChanged && update) {
+      paint();
+    }
+  }
+
+  dom.handleEvent(element, 'scroll', paint);
+
+  dom.handleEvent(textArea, 'input', function () {
+    var newText = textArea.value;
+    if (textAreaContent != newText) {
+      textAreaContent = '';
+      textArea.value = '';
+      if (newText === plainClipboard) {
+        newText = richClipboard;
+      }
+      doc.insert(newText);
+    }
+  });
+
+  var updateTextArea = function () {
+    focusChar = focusChar === null ? doc.selection.end : focusChar;
+    var endChar = doc.byOrdinal(focusChar);
+    focusChar = null;
+    if (endChar) {
+      var bounds = endChar.bounds();
+      textAreaDiv.style.left = bounds.l + 'px';
+      textAreaDiv.style.top = bounds.t + 'px';
+      textArea.focus();
+      var scrollDownBy = Math.max(0, bounds.t + bounds.h -
+        (element.scrollTop + elementHeight));
+      if (scrollDownBy) {
+        element.scrollTop += scrollDownBy;
+      }
+      var scrollUpBy = Math.max(0, element.scrollTop - bounds.t);
+      if (scrollUpBy) {
+        element.scrollTop -= scrollUpBy;
+      }
+      var scrollRightBy = Math.max(0, bounds.l -
+        (element.scrollLeft + elementWidth));
+      if (scrollRightBy) {
+        element.scrollLeft += scrollRightBy;
+      }
+      var scrollLeftBy = Math.max(0, element.scrollLeft - bounds.l);
+      if (scrollLeftBy) {
+        element.scrollLeft -= scrollLeftBy;
+      }
+    }
+    textAreaContent = doc.selectedRange().plainText();
+    textArea.value = textAreaContent;
+    textArea.select();
+
+    setTimeout(function () {
+      textArea.focus();
+    }, 10);
+  };
+
+  doc.selectionChanged(function (getformatting, takeFocus) {
+    paint();
+    if (!selectDragStart) {
+      if (takeFocus !== false) {
         updateTextArea();
-        textArea.focus();
+      }
+    }
+  });
+
+  function registerMouseEvent(name, handler) {
+    dom.handleMouseEvent(spacer, name, function (ev, x, y) {
+      handler(doc.byCoordinate(x, y - getVerticalOffset()));
     });
+  }
 
-    var nextCaretToggle = new Date().getTime(),
-        focused = false,
-        cachedWidth = elementWidth,
-        cachedHeight = elementHeight;
+  registerMouseEvent('mousedown', function (node) {
+    selectDragStart = node.ordinal;
+    doc.select(node.ordinal, node.ordinal);
+    keyboardX = null;
+  });
 
-    var update = function () {
-        var requirePaint = false;
-        var newFocused = document.activeElement === textArea;
-        if (focused !== newFocused) {
-            focused = newFocused;
-            requirePaint = true;
+  registerMouseEvent('dblclick', function (node) {
+    node = node.parent();
+    if (node) {
+      doc.select(node.ordinal, node.ordinal +
+        (node.word ? node.word.text.length : node.length));
+    }
+  });
+
+  registerMouseEvent('mousemove', function (node) {
+    if (selectDragStart !== null) {
+      if (node) {
+        focusChar = node.ordinal;
+        if (selectDragStart > node.ordinal) {
+          doc.select(node.ordinal, selectDragStart);
+        } else {
+          doc.select(selectDragStart, node.ordinal);
         }
+      }
+    }
+  });
 
-        var now = new Date().getTime();
-        if (now > nextCaretToggle) {
-            nextCaretToggle = now + 500;
-            if (doc.toggleCaret()) {
-                requirePaint = true;
-            }
-        }
+  registerMouseEvent('mouseup', function (node) {
+    selectDragStart = null;
+    keyboardX = null;
+    updateTextArea();
+    textArea.focus();
+  });
 
-        if (elementWidth !== cachedWidth ||
-            elementHeight !== cachedHeight) {
-            requirePaint = true;
-            cachedWidth = elementWidth;
-            cachedHeight = elementHeight;
-        }
+  var nextCaretToggle = new Date().getTime(),
+    focused = false,
+    cachedWidth = elementWidth,
+    cachedHeight = elementHeight;
 
-        if (requirePaint) {
-            paint();
-        }
-    };
+  var update = function () {
+    var requirePaint = false;
+    var newFocused = document.activeElement === textArea;
+    if (focused !== newFocused) {
+      focused = newFocused;
+      requirePaint = true;
+    }
 
-    dom.handleEvent(canvas, 'carotaEditorSharedTimer', update);
-    update();
+    var now = new Date().getTime();
+    if (now > nextCaretToggle) {
+      nextCaretToggle = now + 500;
+      if (doc.toggleCaret()) {
+        requirePaint = true;
+      }
+    }
 
-    doc.sendKey = handleKey;
-    doc.paint = paint;
-    return doc;
+    if (elementWidth !== cachedWidth ||
+      elementHeight !== cachedHeight) {
+      requirePaint = true;
+      cachedWidth = elementWidth;
+      cachedHeight = elementHeight;
+    }
+
+    if (requirePaint) {
+      paint();
+    }
+  };
+
+  dom.handleEvent(canvas, 'carotaEditorSharedTimer', update);
+  update();
+
+  doc.sendKey = handleKey;
+  doc.paint = paint;
+  doc.setScale = setScale;
+
+  return doc;
 };

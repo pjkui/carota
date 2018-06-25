@@ -41,8 +41,8 @@ module.exports = function (codes) {
                         newLine = true;
                         break;
                     default:
-                        // support wordwrap. if worddwrap is true evey single character is handle like word
-                        if (escape(inputChar.char).indexOf("%u") > -1 ||  window.carota.worddwrap) {
+                        // support wordwrap. if wordwrap is true evey single character is handle like word
+                        if (escape(inputChar.char).indexOf("%u") > -1 || window.carota.wordwrap) {
                             //如果是utf8字符则进行分词
                             if (!trailingSpaces) {
                                 trailingSpaces = inputChar;
@@ -65,10 +65,10 @@ module.exports = function (codes) {
         if (endOfWord) {
             if (word && !word.equals(inputChar)) {
                 if (emit({
-                        text: word,
-                        spaces: trailingSpaces || inputChar,
-                        end: inputChar
-                    }) === false) {
+                    text: word,
+                    spaces: trailingSpaces || inputChar,
+                    end: inputChar
+                }) === false) {
                     return false;
                 }
                 trailingSpaces = null;
