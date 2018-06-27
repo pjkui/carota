@@ -148,19 +148,22 @@ exports.parse = function (html, classes) {
         }));
     };
     var dealWithSpaces = function (text, formatting) {
-        text = text.replace(/\n+\s*/g, ' ');
-        var fullLength = text.length;
-        text = text.replace(/^\s+/, '');
-        if (inSpace) {
-            inSpace = false;
-        } else if (fullLength !== text.length) {
-            text = ' ' + text;
-        }
-        fullLength = text.length;
-        text = text.replace(/\s+$/, '');
-        if (fullLength !== text.length) {
-            inSpace = true;
-            text += ' ';
+        if(!window.carota.keepHtmlNodeSpaces){
+
+            text = text.replace(/\n+\s*/g, ' ');
+            var fullLength = text.length;
+            text = text.replace(/^\s+/, '');
+            if (inSpace) {
+                inSpace = false;
+            } else if (fullLength !== text.length) {
+                text = ' ' + text;
+            }
+            fullLength = text.length;
+            text = text.replace(/\s+$/, '');
+            if (fullLength !== text.length) {
+                inSpace = true;
+                text += ' ';
+            }
         }
         emit(text, formatting);
     };

@@ -17,7 +17,7 @@ var rect = require('./rect');
 //     }
 // }, 200);
 
-exports.create = function (element, width, height, wordwrap = true, scale = 1) {
+exports.create = function (element, width, height, wordwrap = true, scale = 1, keepHtmlNodeSpaces = true) {
   var canvas,
     spacer,
     textAreaDiv,
@@ -28,6 +28,7 @@ exports.create = function (element, width, height, wordwrap = true, scale = 1) {
   wordwrap = !!wordwrap;
   window.carota.wordwrap = wordwrap;
   window.carota.scale = isNaN(scale) ? 1 : scale;
+  window.carota.keepHtmlNodeSpaces = keepHtmlNodeSpaces;
 
   if (element) {
 
