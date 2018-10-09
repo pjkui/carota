@@ -9,16 +9,19 @@
   },
   "main": "src/carota.js",
   "scripts": {
-    "prepublish": "node make"
+    "prepublish": "npm run lint && node make",
+    "web": "node server",
+    "lint": "eslint src/** --fix "
   },
   "dependencies": {
     "per": "0.1.7"
   },
   "devDependencies": {
-    "webmake": ">=0.3.19",
-    "node-minify": ">=0.8.1",
+    "eslint": "^5.6.1",
     "express": "3.3.4",
-    "uglifyjs": "^2.4.10"
+    "node-minify": "^3.5.0",
+    "uglifyjs": "^2.4.10",
+    "webmake": ">=0.3.19"
   },
   "license": "MIT"
 }

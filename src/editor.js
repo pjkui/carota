@@ -17,11 +17,17 @@ var rect = require('./rect');
 //     }
 // }, 200);
 
-exports.create = function (element, width, height, wordwrap = true, scale = 1) {
-  var canvas,
-    spacer,
-    textAreaDiv,
-    textArea;
+exports.create = function(element, width, height, wordwrap = true, scale = 1) {
+  var canvas;
+
+
+  var spacer;
+
+
+  var textAreaDiv;
+
+
+  var textArea;
   var elementWidth = width || 800;
   var elementHeight = height || 600;
   // wordwrap default value is true
@@ -30,7 +36,6 @@ exports.create = function (element, width, height, wordwrap = true, scale = 1) {
   window.carota.scale = isNaN(scale) ? 1 : scale;
 
   if (element) {
-
     // We need the host element to be a container:
     if (dom.effectiveStyle(element, 'position') !== 'absolute') {
       element.style.position = 'relative';
@@ -43,7 +48,7 @@ exports.create = function (element, width, height, wordwrap = true, scale = 1) {
       '<div class="carotaTextArea" style="overflow: hidden; position: absolute; height: 0;">' +
       '<textarea autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="0" ' +
       'style="position: absolute; padding: 0px; width: 1000px; height: 1em; ' +
-      'outline: none; font-size: 4px;"></textarea>'
+      'outline: none; font-size: 4px;"></textarea>';
     '</div>';
 
     canvas = element.querySelector('canvas');
@@ -59,37 +64,53 @@ exports.create = function (element, width, height, wordwrap = true, scale = 1) {
   }
   canvas.width = elementWidth;
   canvas.height = elementHeight;
-  var
-    doc = carotaDoc(),
-    keyboardSelect = 0,
-    keyboardX = null,
-    nextKeyboardX = null,
-    selectDragStart = null,
-    focusChar = null,
-    textAreaContent = '',
-    richClipboard = null,
-    plainClipboard = null;
+  var doc = carotaDoc();
+
+
+  var keyboardSelect = 0;
+
+
+  var keyboardX = null;
+
+
+  var nextKeyboardX = null;
+
+
+  var selectDragStart = null;
+
+
+  var focusChar = null;
+
+
+  var textAreaContent = '';
+
+
+  var richClipboard = null;
+
+
+  var plainClipboard = null;
   doc.canvas = canvas;
   var toggles = {
     66: 'bold',
     73: 'italic',
     85: 'underline',
-    83: 'strikeout'
+    83: 'strikeout',
   };
 
-  var exhausted = function (ordinal, direction) {
+  var exhausted = function(ordinal, direction) {
     return direction < 0 ? ordinal <= 0 : ordinal >= doc.frame.length - 1;
   };
 
-  var differentLine = function (caret1, caret2) {
+  var differentLine = function(caret1, caret2) {
     return (caret1.b <= caret2.t) ||
       (caret2.b <= caret1.t);
   };
 
-  var changeLine = function (ordinal, direction) {
+  var changeLine = function(ordinal, direction) {
+    var originalCaret = doc.getCaretCoords(ordinal);
 
-    var originalCaret = doc.getCaretCoords(ordinal),
-      newCaret;
+
+    var newCaret;
     nextKeyboardX = (keyboardX !== null) ? keyboardX : originalCaret.l;
 
     while (!exhausted(ordinal, direction)) {
@@ -118,9 +139,11 @@ exports.create = function (element, width, height, wordwrap = true, scale = 1) {
     return ordinal;
   };
 
-  var endOfline = function (ordinal, direction) {
-    var originalCaret = doc.getCaretCoords(ordinal),
-      newCaret;
+  var endOfline = function(ordinal, direction) {
+    var originalCaret = doc.getCaretCoords(ordinal);
+
+
+    var newCaret;
     while (!exhausted(ordinal, direction)) {
       ordinal += direction;
       newCaret = doc.getCaretCoords(ordinal);
@@ -132,11 +155,17 @@ exports.create = function (element, width, height, wordwrap = true, scale = 1) {
     return ordinal;
   };
 
-  var handleKey = function (key, selecting, ctrlKey) {
-    var start = doc.selection.start,
-      end = doc.selection.end,
-      length = doc.frame.length - 1,
-      handled = false;
+  var handleKey = function(key, selecting, ctrlKey) {
+    var start = doc.selection.start;
+
+
+    var end = doc.selection.end;
+
+
+    var length = doc.frame.length - 1;
+
+
+    var handled = false;
 
     nextKeyboardX = null;
 
@@ -303,7 +332,7 @@ exports.create = function (element, width, height, wordwrap = true, scale = 1) {
     return handled;
   };
 
-  dom.handleEvent(textArea, 'keydown', function (ev) {
+  dom.handleEvent(textArea, 'keydown', function(ev) {
     if (handleKey(ev.keyCode, ev.shiftKey, ev.ctrlKey)) {
       return false;
     }
@@ -312,10 +341,10 @@ exports.create = function (element, width, height, wordwrap = true, scale = 1) {
 
   var verticalAlignment = 'top';
 
-  doc.setVerticalAlignment = function (va) {
+  doc.setVerticalAlignment = function(va) {
     verticalAlignment = va;
     paint();
-  }
+  };
 
   function getVerticalOffset() {
     var docHeight = doc.frame.bounds().h;
@@ -330,7 +359,7 @@ exports.create = function (element, width, height, wordwrap = true, scale = 1) {
     return 0;
   }
 
-  var paint = function () {
+  var paint = function() {
     var availableWidth = elementWidth * 1; // adjust to 0.5 to see if we draw in the wrong places!
     if (doc.width() !== availableWidth) {
       doc.width(availableWidth);
@@ -340,8 +369,10 @@ exports.create = function (element, width, height, wordwrap = true, scale = 1) {
 
     var dpr = Math.max(1, window.devicePixelRatio || 1);
 
-    var logicalWidth = Math.max(doc.frame.actualWidth(), elementWidth),
-      logicalHeight = elementHeight;
+    var logicalWidth = Math.max(doc.frame.actualWidth(), elementWidth);
+
+
+    var logicalHeight = elementHeight;
 
     canvas.width = dpr * logicalWidth * window.carota.scale;
     canvas.height = dpr * logicalHeight * window.carota.scale;
@@ -366,18 +397,20 @@ exports.create = function (element, width, height, wordwrap = true, scale = 1) {
     ctx.translate(0, getVerticalOffset() - element.scrollTop);
 
     doc.draw(ctx, rect(0, element.scrollTop, logicalWidth, logicalHeight));
+    // draw caret
+    doc.drawSelection(ctx, selectDragStart || (document.activeElement === textArea));
   };
 
-  var setScale = function (scale, option) {
+  var setScale = function(scale, option) {
     var op = Object.assign({
-      update: true
+      update: true,
     }, option);
 
     var isChanged = false;
 
     if (!isNaN(scale) && scale > 0) {
       if (Math.abs(window.carota.scale - scale) > 1e-7) {
-        window.carota.scale = scale
+        window.carota.scale = scale;
         isChanged = true;
       }
     }
@@ -385,11 +418,11 @@ exports.create = function (element, width, height, wordwrap = true, scale = 1) {
     if (isChanged && update) {
       paint();
     }
-  }
+  };
 
   dom.handleEvent(element, 'scroll', paint);
 
-  dom.handleEvent(textArea, 'input', function () {
+  dom.handleEvent(textArea, 'input', function() {
     var newText = textArea.value;
     if (textAreaContent != newText) {
       textAreaContent = '';
@@ -401,7 +434,7 @@ exports.create = function (element, width, height, wordwrap = true, scale = 1) {
     }
   });
 
-  var updateTextArea = function () {
+  var updateTextArea = function() {
     focusChar = focusChar === null ? doc.selection.end : focusChar;
     var endChar = doc.byOrdinal(focusChar);
     focusChar = null;
@@ -433,12 +466,12 @@ exports.create = function (element, width, height, wordwrap = true, scale = 1) {
     textArea.value = textAreaContent;
     textArea.select();
 
-    setTimeout(function () {
+    setTimeout(function() {
       textArea.focus();
     }, 10);
   };
 
-  doc.selectionChanged(function (getformatting, takeFocus) {
+  doc.selectionChanged(function(getformatting, takeFocus) {
     paint();
     if (!selectDragStart) {
       if (takeFocus !== false) {
@@ -448,18 +481,18 @@ exports.create = function (element, width, height, wordwrap = true, scale = 1) {
   });
 
   function registerMouseEvent(name, handler) {
-    dom.handleMouseEvent(spacer, name, function (ev, x, y) {
+    dom.handleMouseEvent(spacer, name, function(ev, x, y) {
       handler(doc.byCoordinate(x, y - getVerticalOffset()));
     });
   }
 
-  registerMouseEvent('mousedown', function (node) {
+  registerMouseEvent('mousedown', function(node) {
     selectDragStart = node.ordinal;
     doc.select(node.ordinal, node.ordinal);
     keyboardX = null;
   });
 
-  registerMouseEvent('dblclick', function (node) {
+  registerMouseEvent('dblclick', function(node) {
     node = node.parent();
     if (node) {
       doc.select(node.ordinal, node.ordinal +
@@ -467,7 +500,7 @@ exports.create = function (element, width, height, wordwrap = true, scale = 1) {
     }
   });
 
-  registerMouseEvent('mousemove', function (node) {
+  registerMouseEvent('mousemove', function(node) {
     if (selectDragStart !== null) {
       if (node) {
         focusChar = node.ordinal;
@@ -480,19 +513,25 @@ exports.create = function (element, width, height, wordwrap = true, scale = 1) {
     }
   });
 
-  registerMouseEvent('mouseup', function (node) {
+  registerMouseEvent('mouseup', function(node) {
     selectDragStart = null;
     keyboardX = null;
     updateTextArea();
     textArea.focus();
   });
 
-  var nextCaretToggle = new Date().getTime(),
-    focused = false,
-    cachedWidth = elementWidth,
-    cachedHeight = elementHeight;
+  var nextCaretToggle = new Date().getTime();
 
-  var update = function () {
+
+  var focused = false;
+
+
+  var cachedWidth = elementWidth;
+
+
+  var cachedHeight = elementHeight;
+
+  var update = function() {
     var requirePaint = false;
     var newFocused = document.activeElement === textArea;
     if (focused !== newFocused) {

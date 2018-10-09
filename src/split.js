@@ -13,71 +13,72 @@
     after" a word - even if that word happens to be zero characters long!
  */
 
-module.exports = function (codes) {
+module.exports = function(codes) {
+  var word = null;
 
-    var word = null,
-        trailingSpaces = null,
-        newLine = true;
 
-    return function (emit, inputChar) {
+  var trailingSpaces = null;
 
-        var endOfWord;
-        if (inputChar.char === null) {
+
+  var newLine = true;
+
+  return function(emit, inputChar) {
+    var endOfWord;
+    if (inputChar.char === null) {
+      endOfWord = true;
+    } else {
+      if (newLine) {
+        endOfWord = true;
+        newLine = false;
+      }
+      if (typeof inputChar.char === 'string') {
+        switch (inputChar.char) {
+          case ' ':
+            if (!trailingSpaces) {
+              trailingSpaces = inputChar;
+            }
+            break;
+          case '\n':
             endOfWord = true;
-        } else {
-            if (newLine) {
-                endOfWord = true;
-                newLine = false;
+            newLine = true;
+            break;
+          default:
+            // support wordwrap. if wordwrap is true evey single character is handle like word
+            if (escape(inputChar.char).indexOf('%u') > -1 || window.carota.wordwrap) {
+              // 如果是utf8字符则进行分词
+              if (!trailingSpaces) {
+                trailingSpaces = inputChar;
+              }
             }
-            if (typeof inputChar.char === 'string') {
-                switch (inputChar.char) {
-                    case ' ':
-                        if (!trailingSpaces) {
-                            trailingSpaces = inputChar;
-                        }
-                        break;
-                    case '\n':
-                        endOfWord = true;
-                        newLine = true;
-                        break;
-                    default:
-                        // support wordwrap. if wordwrap is true evey single character is handle like word
-                        if (escape(inputChar.char).indexOf("%u") > -1 || window.carota.wordwrap) {
-                            //如果是utf8字符则进行分词
-                            if (!trailingSpaces) {
-                                trailingSpaces = inputChar;
-                            }
-                        }
 
-                        if (trailingSpaces) {
-                            endOfWord = true;
-                        }
-
-                }
-            } else {
-                var code = codes(inputChar.char);
-                if (code.block || code.eof) {
-                    endOfWord = true;
-                    newLine = true;
-                }
+            if (trailingSpaces) {
+              endOfWord = true;
             }
         }
-        if (endOfWord) {
-            if (word && !word.equals(inputChar)) {
-                if (emit({
-                    text: word,
-                    spaces: trailingSpaces || inputChar,
-                    end: inputChar
-                }) === false) {
-                    return false;
-                }
-                trailingSpaces = null;
-            }
-            if (inputChar.char === null) {
-                emit(null); // Indicate end of stream
-            }
-
-            word = inputChar;
+      } else {
+        var code = codes(inputChar.char);
+        if (code.block || code.eof) {
+          endOfWord = true;
+          newLine = true;
         }
-    };
+      }
+    }
+    if (endOfWord) {
+      if (word && !word.equals(inputChar)) {
+        if (emit({
+          text: word,
+          spaces: trailingSpaces || inputChar,
+          end: inputChar,
+        }) === false) {
+          return false;
+        }
+        trailingSpaces = null;
+      }
+      if (inputChar.char === null) {
+        emit(null); // Indicate end of stream
+      }
+
+      word = inputChar;
+    }
+  };
 };

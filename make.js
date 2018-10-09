@@ -1,21 +1,26 @@
 var webmake = require('webmake');
-var minify = require('node-minify');
+var compressor = require('node-minify');
 
-webmake('src/carota.js', { output: 'carota-debug.js' ,sourceMap :true}, function(result) {
-    if (!result) {
+webmake('src/carota.js',
+    {
+      output: 'carota-debug.js',
+      sourceMap: true,
+    },
+    function(result) {
+      if (!result) {
         console.log('All good');
-    } else {
+      } else {
         console.log(result);
-    }
-});
+      }
+    });
 
-new minify.minify({
-    type: 'uglifyjs',
-    fileIn: 'carota-debug.js',
-    fileOut: 'carota-min.js',
-    callback: function(err, min){
-        if (err) {
-            console.log(err);
-        }
+compressor.minify({
+  compressor: 'uglifyjs',
+  input: 'carota-debug.js',
+  output: 'carota-min.js',
+  callback: function(err, min) {
+    if (err) {
+      console.log(err);
     }
+  },
 });
