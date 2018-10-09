@@ -23,7 +23,6 @@ var prototype = node.derive({
     if (minimal) {
       var firstWord = this.first().bounds();
 
-
       var lastWord = this.last().bounds();
       return rect(
           firstWord.l,

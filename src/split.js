@@ -16,9 +16,7 @@
 module.exports = function(codes) {
   var word = null;
 
-
   var trailingSpaces = null;
-
 
   var newLine = true;
 

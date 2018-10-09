@@ -17,16 +17,10 @@ var rect = require('./rect');
 //     }
 // }, 200);
 
-exports.create = function(element, width, height, wordwrap = true, scale = 1) {
+exports.create = function(element, width, height, wordwrap = true, scale = 1, keepHtmlNodeSpaces = true) {
   var canvas;
-
-
   var spacer;
-
-
   var textAreaDiv;
-
-
   var textArea;
   var elementWidth = width || 800;
   var elementHeight = height || 600;
@@ -34,6 +28,7 @@ exports.create = function(element, width, height, wordwrap = true, scale = 1) {
   wordwrap = !!wordwrap;
   window.carota.wordwrap = wordwrap;
   window.carota.scale = isNaN(scale) ? 1 : scale;
+  window.carota.keepHtmlNodeSpaces = keepHtmlNodeSpaces;
 
   if (element) {
     // We need the host element to be a container:
@@ -66,27 +61,19 @@ exports.create = function(element, width, height, wordwrap = true, scale = 1) {
   canvas.height = elementHeight;
   var doc = carotaDoc();
 
-
   var keyboardSelect = 0;
-
 
   var keyboardX = null;
 
-
   var nextKeyboardX = null;
-
 
   var selectDragStart = null;
 
-
   var focusChar = null;
-
 
   var textAreaContent = '';
 
-
   var richClipboard = null;
-
 
   var plainClipboard = null;
   doc.canvas = canvas;
@@ -108,7 +95,6 @@ exports.create = function(element, width, height, wordwrap = true, scale = 1) {
 
   var changeLine = function(ordinal, direction) {
     var originalCaret = doc.getCaretCoords(ordinal);
-
 
     var newCaret;
     nextKeyboardX = (keyboardX !== null) ? keyboardX : originalCaret.l;
@@ -142,7 +128,6 @@ exports.create = function(element, width, height, wordwrap = true, scale = 1) {
   var endOfline = function(ordinal, direction) {
     var originalCaret = doc.getCaretCoords(ordinal);
 
-
     var newCaret;
     while (!exhausted(ordinal, direction)) {
       ordinal += direction;
@@ -158,12 +143,9 @@ exports.create = function(element, width, height, wordwrap = true, scale = 1) {
   var handleKey = function(key, selecting, ctrlKey) {
     var start = doc.selection.start;
 
-
     var end = doc.selection.end;
 
-
     var length = doc.frame.length - 1;
-
 
     var handled = false;
 
@@ -371,7 +353,6 @@ exports.create = function(element, width, height, wordwrap = true, scale = 1) {
 
     var logicalWidth = Math.max(doc.frame.actualWidth(), elementWidth);
 
-
     var logicalHeight = elementHeight;
 
     canvas.width = dpr * logicalWidth * window.carota.scale;
@@ -522,12 +503,9 @@ exports.create = function(element, width, height, wordwrap = true, scale = 1) {
 
   var nextCaretToggle = new Date().getTime();
 
-
   var focused = false;
 
-
   var cachedWidth = elementWidth;
-
 
   var cachedHeight = elementHeight;
 

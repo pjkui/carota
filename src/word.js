@@ -53,7 +53,6 @@ var prototype = {
   runs: function(emit, range) {
     var start = range && range.start || 0;
 
-
     var end = range && range.end;
     if (typeof end !== 'number') {
       end = Number.MAX_VALUE;

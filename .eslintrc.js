@@ -245,7 +245,7 @@ module.exports = {
         // 'no-mixed-operators': 0,
         'no-mixed-spaces-and-tabs': 2, // eslint:recommended
         // 'no-multi-assign': 0,
-        'no-multiple-empty-lines': [2, {max: 2}],
+        'no-multiple-empty-lines': [2, {max: 1, maxBOF: 2, maxEOF:2 }],
         // 'no-negated-condition': 0,
         // 'no-nested-ternary': 0,
         'no-new-object': 2,

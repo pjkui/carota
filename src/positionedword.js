@@ -67,7 +67,6 @@ var prototype = node.derive({
       var cache = [];
       var x = 0; var self = this; var ordinal = this.ordinal;
 
-
       var codes = this.parentOfType('document').codes;
       this.parts(function(wordPart) {
         runs.pieceCharacters(function(char) {

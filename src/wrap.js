@@ -13,21 +13,15 @@ module.exports = function(left, top, width, ordinal, parent,
     includeTerminator, initialAscent, initialDescent) {
   var lineBuffer = [];
 
-
   var lineWidth = 0;
-
 
   var maxAscent = initialAscent || 0;
 
-
   var maxDescent = initialDescent || 0;
-
 
   var quit;
 
-
   var lastNewLineHeight = 0;
-
 
   var y = top;
 

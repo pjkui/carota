@@ -137,32 +137,32 @@ exports.parse = function(html, classes) {
     root.innerHTML = html;
   }
 
-  let result = [];
-
-
-  let inSpace = true;
-  let cons = per(runs.consolidate()).into(result);
-  let emit = function(text, formatting) {
+  var result = [];
+  var inSpace = true;
+  var cons = per(runs.consolidate()).into(result);
+  var emit = function(text, formatting) {
     cons.submit(Object.create(formatting, {
       text: {
         value: text,
       },
     }));
   };
-  let dealWithSpaces = function(text, formatting) {
-    text = text.replace(/\n+\s*/g, ' ');
-    let fullLength = text.length;
-    text = text.replace(/^\s+/, '');
-    if (inSpace) {
-      inSpace = false;
-    } else if (fullLength !== text.length) {
-      text = ' ' + text;
-    }
-    fullLength = text.length;
-    text = text.replace(/\s+$/, '');
-    if (fullLength !== text.length) {
-      inSpace = true;
-      text += ' ';
+  var dealWithSpaces = function(text, formatting) {
+    if (!window.carota.keepHtmlNodeSpaces) {
+      text = text.replace(/\n+\s*/g, ' ');
+      var fullLength = text.length;
+      text = text.replace(/^\s+/, '');
+      if (inSpace) {
+        inSpace = false;
+      } else if (fullLength !== text.length) {
+        text = ' ' + text;
+      }
+      fullLength = text.length;
+      text = text.replace(/\s+$/, '');
+      if (fullLength !== text.length) {
+        inSpace = true;
+        text += ' ';
+      }
     }
     emit(text, formatting);
   };
@@ -173,7 +173,7 @@ exports.parse = function(html, classes) {
     } else {
       formatting = Object.create(formatting);
 
-      let classNames = node.attributes['class'];
+      var classNames = node.attributes['class'];
       if (classNames) {
         classNames.value.split(' ').forEach(function(cls) {
           cls = classes[cls];
@@ -188,6 +188,7 @@ exports.parse = function(html, classes) {
       handlers.forEach(function(handler) {
         handler(node, formatting);
       });
+
       if (node.childNodes) {
         for (let n = 0; n < node.childNodes.length; n++) {
           recurse(node.childNodes[n], formatting);

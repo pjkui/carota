@@ -85,12 +85,9 @@ codes.listStart = function(obj, data, allCodes) {
     block: function(left, top, width, ordinal, parent, formatting) {
       var list = node.generic('list', parent, left, top);
 
-
       var itemNode;
 
-
       var itemFrame;
-
 
       var itemMarker;
 

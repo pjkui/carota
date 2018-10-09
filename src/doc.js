@@ -167,7 +167,6 @@ var prototype = node.derive({
   runs: function(emit, range) {
     var startDetails = this.wordContainingOrdinal(Math.max(0, range.start));
 
-
     var endDetails = this.wordContainingOrdinal(Math.min(range.end, this.frame.length - 1));
     if (startDetails.index === endDetails.index) {
       startDetails.word.runs(emit, {
@@ -247,7 +246,6 @@ var prototype = node.derive({
     this.applyInsertFormatting(text);
 
     var startWord = this.wordContainingOrdinal(start);
-
 
     var endWord = this.wordContainingOrdinal(end);
 
@@ -405,9 +403,7 @@ var prototype = node.derive({
   performUndo: function(redo) {
     var fromStack = redo ? this.redo : this.undo;
 
-
     var toStack = redo ? this.undo : this.redo;
-
 
     var oldCommand = fromStack.pop();
 
