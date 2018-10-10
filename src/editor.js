@@ -16,8 +16,21 @@ var rect = require('./rect');
 //         editors[n].dispatchEvent(ev);
 //     }
 // }, 200);
-
-exports.create = function(element, width, height, wordwrap = true, scale = 1, keepHtmlNodeSpaces = true) {
+/**
+ *
+ * @param {Node} element editor stage
+ * @param {number} width
+ * @param {height} height
+ * @param {boolean} wordwrap
+ * @param {number} scale
+ * @param {boolean} keepHtmlNodeSpaces
+ * @param {boolean} showCaret
+ */
+exports.create = function(element, width, height,
+    wordwrap = true,
+    scale = 1,
+    keepHtmlNodeSpaces = false,
+    showCaret) {
   var canvas;
   var spacer;
   var textAreaDiv;
@@ -29,36 +42,43 @@ exports.create = function(element, width, height, wordwrap = true, scale = 1, ke
   window.carota.wordwrap = wordwrap;
   window.carota.scale = isNaN(scale) ? 1 : scale;
   window.carota.keepHtmlNodeSpaces = keepHtmlNodeSpaces;
+  window.carota.showCaret = showCaret || false;
 
   if (element) {
     // We need the host element to be a container:
     if (dom.effectiveStyle(element, 'position') !== 'absolute') {
       element.style.position = 'relative';
     }
-
-    element.innerHTML =
-      '<div class="carotaSpacer">' +
-      '<canvas width="100" height="100" class="carotaEditorCanvas" style="position: absolute;"></canvas>' +
-      '</div>' +
-      '<div class="carotaTextArea" style="overflow: hidden; position: absolute; height: 0;">' +
-      '<textarea autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="0" ' +
-      'style="position: absolute; padding: 0px; width: 1000px; height: 1em; ' +
-      'outline: none; font-size: 4px;"></textarea>';
-    '</div>';
-
-    canvas = element.querySelector('canvas');
-    spacer = element.querySelector('.carotaSpacer');
-    textAreaDiv = element.querySelector('.carotaTextArea');
-    textArea = element.querySelector('textarea');
+    if (showCaret == void 0) {
+      window.carota.showCaret = true;
+    }
   } else {
-    canvas = document.createElement('canvas');
-    element = document.createElement('div');
-    spacer = document.createElement('div');
-    textAreaDiv = document.createElement('div');
-    textArea = document.createElement('textarea');
+    if (window._carota_temp_Element) {
+      element = window._carota_temp_Element;
+    } else {
+      element = document.createElement('div');
+      window._carota_temp_Element = element;
+    }
+    document.body.appendChild(element);
   }
+
+  element.innerHTML =
+        '<div class="carotaSpacer">' +
+        '<canvas width="100" height="100" class="carotaEditorCanvas" style="position: absolute;"></canvas>' +
+        '</div>' +
+        '<div class="carotaTextArea" style="overflow: hidden; position: absolute; height: 0;">' +
+        '<textarea autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="0" ' +
+        'style="position: absolute; padding: 0px; width: 1000px; height: 1em; ' +
+        'outline: none; font-size: 4px;"></textarea>';
+  '</div>';
+
+  canvas = element.querySelector('canvas');
+  spacer = element.querySelector('.carotaSpacer');
+  textAreaDiv = element.querySelector('.carotaTextArea');
+  textArea = element.querySelector('textarea');
   canvas.width = elementWidth;
   canvas.height = elementHeight;
+
   var doc = carotaDoc();
 
   var keyboardSelect = 0;
@@ -379,7 +399,9 @@ exports.create = function(element, width, height, wordwrap = true, scale = 1, ke
 
     doc.draw(ctx, rect(0, element.scrollTop, logicalWidth, logicalHeight));
     // draw caret
-    doc.drawSelection(ctx, selectDragStart || (document.activeElement === textArea));
+    if (window.carota.showCaret) {
+      doc.drawSelection(ctx, selectDragStart || (document.activeElement === textArea));
+    }
   };
 
   var setScale = function(scale, option) {
@@ -402,8 +424,19 @@ exports.create = function(element, width, height, wordwrap = true, scale = 1, ke
   };
 
   dom.handleEvent(element, 'scroll', paint);
-
-  dom.handleEvent(textArea, 'input', function() {
+  var cpLock = false;
+  dom.handleEvent(textArea, 'compositionstart', function() {
+    cpLock = true;
+  });
+  dom.handleEvent(textArea, 'compositionend', function() {
+    cpLock = false;
+    if (!cpLock) {
+      console.log(this.value, 'compositionend');
+      var newText = textArea.value;
+      addText(newText);
+    }
+  });
+  var addText = function(newText) {
     var newText = textArea.value;
     if (textAreaContent != newText) {
       textAreaContent = '';
@@ -412,6 +445,15 @@ exports.create = function(element, width, height, wordwrap = true, scale = 1, ke
         newText = richClipboard;
       }
       doc.insert(newText);
+    }
+  };
+  dom.handleEvent(textArea, 'input', function() {
+    if (!cpLock) {
+      console.log(this.value, 'in composition');
+      var newText = textArea.value;
+      addText(newText);
+    } else {
+      console.log(this.value, 'in composition');
     }
   });
 
@@ -463,6 +505,9 @@ exports.create = function(element, width, height, wordwrap = true, scale = 1, ke
 
   function registerMouseEvent(name, handler) {
     dom.handleMouseEvent(spacer, name, function(ev, x, y) {
+      // support scale
+      x = x / window.carota.scale;
+      y = y / window.carota.scale;
       handler(doc.byCoordinate(x, y - getVerticalOffset()));
     });
   }

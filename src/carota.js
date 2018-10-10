@@ -24,7 +24,7 @@ module.exports = bundle;
 
 if (typeof window !== 'undefined' && window.document) {
   if (window.carota) {
-    throw new Error('Something else is called carota!');
+    // throw new Error('Something else is called carota!');
   }
   window.carota = bundle;
 }

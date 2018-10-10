@@ -352,14 +352,14 @@ var prototype = node.derive({
         var caret = this.getCaretCoords(this.selection.start);
         if (caret) {
           ctx.save();
-          ctx.fillStyle = 'black';
+          ctx.fillStyle = '#ccc';
           caret.fill(ctx);
           ctx.restore();
         }
       }
     } else {
       ctx.save();
-      ctx.fillStyle = hasFocus ? 'rgba(0, 100, 200, 0.3)' : 'rgba(160, 160, 160, 0.3)';
+      ctx.fillStyle = hasFocus ? 'rgba(0, 100, 200, 0.3)' : 'rgba(200, 200, 200, 0.8)';
       this.selectedRange().parts(function(part) {
         part.bounds(true).fill(ctx);
       });
