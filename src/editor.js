@@ -44,7 +44,7 @@ exports.create = function(element, width, height,
   window.carota.wordwrap = wordwrap;
   window.carota.scale = isNaN(scale) ? 1 : scale;
   window.carota.keepHtmlNodeSpaces = keepHtmlNodeSpaces;
-  window.carota.showCaret = showCaret || false;
+  window.carota.showCaret = showCaret || window.carota.showCaret || false;
 
   if (element) {
     // We need the host element to be a container:
