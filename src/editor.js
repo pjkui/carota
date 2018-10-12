@@ -1,4 +1,4 @@
-var per = require('per');
+// var per = require('per');
 var carotaDoc = require('./doc');
 var dom = require('./dom');
 var rect = require('./rect');
@@ -340,7 +340,7 @@ exports.create = function(element, width, height,
     if (handleKey(ev.keyCode, ev.shiftKey, ev.ctrlKey)) {
       return false;
     }
-    console.log(ev.which);
+    // console.log(ev.which);
   });
 
   var verticalAlignment = 'top';
@@ -407,9 +407,9 @@ exports.create = function(element, width, height,
   };
 
   var setScale = function(scale, option) {
-    var op = Object.assign({
-      update: true,
-    }, option);
+    // var op = Object.assign({
+    //   update: true,
+    // }, option);
 
     var isChanged = false;
 
@@ -433,7 +433,7 @@ exports.create = function(element, width, height,
   dom.handleEvent(textArea, 'compositionend', function() {
     cpLock = false;
     if (!cpLock) {
-      console.log(this.value, 'compositionend');
+      // console.log(this.value, 'compositionend');
       var newText = textArea.value;
       addText(newText);
     }
@@ -451,11 +451,11 @@ exports.create = function(element, width, height,
   };
   dom.handleEvent(textArea, 'input', function() {
     if (!cpLock) {
-      console.log(this.value, 'in composition');
+      // console.log(this.value, 'in composition');
       var newText = textArea.value;
       addText(newText);
     } else {
-      console.log(this.value, 'in composition');
+      // console.log(this.value, 'in composition');
     }
   });
 
