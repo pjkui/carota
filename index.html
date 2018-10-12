@@ -300,7 +300,7 @@
     <script>
     window.onload = function() {
         var elem = document.querySelector('#exampleEditor');
-        var exampleEditor = carota.editor.create(elem);
+        var exampleEditor = carota.editor.create(elem, 0, 0, true, 1, false);
 
         // Set up our custom inline - a smiley emoji
         var smiley = document.querySelector('#smiley img');

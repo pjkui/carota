@@ -37,6 +37,8 @@ exports.create = function(element, width, height,
   var textArea;
   var elementWidth = width || 800;
   var elementHeight = height || 600;
+  window.carota.intance = window.carota.intance || {};
+
   // wordwrap default value is true
   wordwrap = !!wordwrap;
   window.carota.wordwrap = wordwrap;
@@ -53,11 +55,11 @@ exports.create = function(element, width, height,
       window.carota.showCaret = true;
     }
   } else {
-    if (window._carota_temp_Element) {
-      element = window._carota_temp_Element;
+    if (window.carota.intance.containerDom) {
+      element = window.carota.intance.containerDom;
     } else {
       element = document.createElement('div');
-      window._carota_temp_Element = element;
+      window.carota.intance.containerDom = element;
     }
     document.body.appendChild(element);
   }
@@ -588,6 +590,8 @@ exports.create = function(element, width, height,
   doc.sendKey = handleKey;
   doc.paint = paint;
   doc.setScale = setScale;
+
+  window.carota.intance.editor = doc;
 
   return doc;
 };
