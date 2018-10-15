@@ -71,8 +71,8 @@ exports.create = function(element, width, height,
         '<div class="carotaTextArea" style="overflow: hidden; position: absolute; height: 0;">' +
         '<textarea autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="0" ' +
         'style="position: absolute; padding: 0px; width: 1000px; height: 1em; ' +
-        'outline: none; font-size: 4px;"></textarea>';
-  '</div>';
+        'outline: none; font-size: 4px;"></textarea>'+
+        '</div>';
 
   canvas = element.querySelector('canvas');
   spacer = element.querySelector('.carotaSpacer');
@@ -390,7 +390,7 @@ exports.create = function(element, width, height,
       doc.frame.actualWidth() <= availableWidth) {
       element.style.overflow = 'hidden';
     } else {
-      element.style.overflow = 'auto';
+      element.style.overflow = 'hidden';
     }
 
     var ctx = canvas.getContext('2d');
