@@ -41,12 +41,13 @@ module.exports = function(codes) {
             newLine = true;
             break;
           default:
-            // support wordwrap. if wordwrap is true evey single character is handle like word
+            // support wordwrap. if wordwrap is true evey single character is handle like a word
             if (escape(inputChar.char).indexOf('%u') > -1 || window.carota.wordwrap) {
               // 如果是utf8字符则进行分词
-              if (!trailingSpaces) {
-                trailingSpaces = inputChar;
-              }
+              // if (!trailingSpaces) {
+              //   trailingSpaces = inputChar;
+              // }
+              endOfWord = true;
             }
 
             if (trailingSpaces) {
