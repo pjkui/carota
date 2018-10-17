@@ -61,7 +61,7 @@ exports.create = function(element, width, height,
       element = document.createElement('div');
       window.carota.intance.containerDom = element;
     }
-    document.body.appendChild(element);
+    // document.body.appendChild(element);
   }
 
   element.innerHTML =
