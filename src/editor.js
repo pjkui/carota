@@ -37,7 +37,7 @@ exports.create = function(element, width, height,
   var textArea;
   var elementWidth = width || 800;
   var elementHeight = height || 600;
-  window.carota.intance = window.carota.intance || {};
+  window.carota.instance = window.carota.instance || {};
 
   // wordwrap default value is true
   wordwrap = !!wordwrap;
@@ -55,11 +55,11 @@ exports.create = function(element, width, height,
       window.carota.showCaret = true;
     }
   } else {
-    if (window.carota.intance.containerDom) {
-      element = window.carota.intance.containerDom;
+    if (window.carota.instance.containerDom) {
+      element = window.carota.instance.containerDom;
     } else {
       element = document.createElement('div');
-      window.carota.intance.containerDom = element;
+      window.carota.instance.containerDom = element;
     }
     // document.body.appendChild(element);
   }
@@ -591,7 +591,7 @@ exports.create = function(element, width, height,
   doc.paint = paint;
   doc.setScale = setScale;
 
-  window.carota.intance.editor = doc;
+  window.carota.instance.editor = doc;
 
   return doc;
 };
