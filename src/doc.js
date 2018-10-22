@@ -456,8 +456,8 @@ exports = module.exports = function() {
     var instance = codes(code, data, doc.codes);
     return instance || doc.customCodes(code, data, doc.codes);
   };
-  doc.selectionChanged = util.event();
-  doc.contentChanged = util.event();
+  doc.selectionChanged = util.event('selectionChanged');
+  doc.contentChanged = util.event('contentChanged');
   doc.editFilters = [codes.editFilter];
   doc.load([]);
   return doc;

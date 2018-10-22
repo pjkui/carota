@@ -54,6 +54,7 @@ exports.create = function(element, width, height,
     if (showCaret == void 0) {
       window.carota.showCaret = true;
     }
+    window.carota.instance.containerDom = element;
   } else {
     if (window.carota.instance.containerDom) {
       element = window.carota.instance.containerDom;
