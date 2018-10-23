@@ -377,10 +377,7 @@ exports.create = function(element, width, height,
     var logicalWidth = Math.max(doc.frame.actualWidth(), elementWidth);
 
     var logicalHeight = elementHeight;
-    if (canvas !== doc.canvas) {
-      canvas.replaceWith(doc.canvas);
-    }
-    canvas = doc.canvas;
+    var canvas = doc.renderCanvas || canvas;
     canvas.width = dpr * logicalWidth * window.carota.scale;
     canvas.height = dpr * logicalHeight * window.carota.scale;
     canvas.style.width = logicalWidth + 'px';
