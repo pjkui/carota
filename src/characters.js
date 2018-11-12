@@ -23,7 +23,7 @@ var prototype = {
           if (start < stop) {
             runs.getSubText(function(piece) {
               var pieceRun = Object.create(run);
-              Object.defineProperty(pieceRun,'text',{value:piece})
+              Object.defineProperty(pieceRun, 'text', { value: piece });
               // pieceRun.text = piece; //this method will has bug if text is getter or setter . so use code above
               eachRun(pieceRun);
             }, run.text, start, stop - start);

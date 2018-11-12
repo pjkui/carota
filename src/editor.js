@@ -380,8 +380,8 @@ exports.create = function(element, width, height,
     var canvas = doc.renderCanvas || doc.canvas;
     canvas.width = dpr * logicalWidth * window.carota.scale;
     canvas.height = dpr * logicalHeight * window.carota.scale;
-    canvas.style.width = logicalWidth + 'px';
-    canvas.style.height = logicalHeight + 'px';
+    // canvas.style.width = logicalWidth + 'px';
+    // canvas.style.height = logicalHeight + 'px';
 
     canvas.style.top = element.scrollTop + 'px';
     spacer.style.width = logicalWidth + 'px';
