@@ -378,8 +378,8 @@ exports.create = function(element, width, height,
 
     var logicalHeight = elementHeight;
     var canvas = doc.renderCanvas || doc.canvas;
-    canvas.width = dpr * logicalWidth * window.carota.scale;
-    canvas.height = dpr * logicalHeight * window.carota.scale;
+    canvas.width = dpr * logicalWidth;
+    canvas.height = dpr * logicalHeight;
     // canvas.style.width = logicalWidth + 'px';
     // canvas.style.height = logicalHeight + 'px';
 
