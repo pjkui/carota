@@ -17,13 +17,33 @@ exports.setText = function(element, text) {
   exports.clear(element);
   element.appendChild(document.createTextNode(text));
 };
+var eventList = [];
+exports.registerEvent = function(element, eventName, eventHandle) {
+  eventList.push({ element, eventName, eventHandle });
+};
+
+exports.removeAllEvents = function() {
+  eventList.forEach((evtItem) => {
+    var ele = evtItem.element;
+    ele.removeEventListener(evtItem.eventName, evtItem.eventHandle);
+  });
+  eventList = [];
+};
 
 exports.handleEvent = function(element, name, handler) {
-  element.addEventListener(name, function(ev) {
+  var handleFunc = function(ev) {
     if (handler(ev) === false) {
       ev.preventDefault();
     }
-  });
+  };
+
+  exports.registerEvent(element, name, handleFunc);
+  element.addEventListener(name, handleFunc);
+  // element.addEventListener(name, function(ev) {
+  //   if (handler(ev) === false) {
+  //     ev.preventDefault();
+  //   }
+  // });
 };
 
 exports.handleMouseEvent = function(element, name, handler) {

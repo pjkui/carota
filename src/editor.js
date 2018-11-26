@@ -585,12 +585,17 @@ exports.create = function(element, width, height,
     }
   };
 
+  var dispose = function() {
+    dom.removeAllEvents();
+  };
+
   dom.handleEvent(canvas, 'carotaEditorSharedTimer', update);
   update();
 
   doc.sendKey = handleKey;
   doc.paint = paint;
   doc.setScale = setScale;
+  doc.dispose = dispose;
 
   window.carota.instance.editor = doc;
 
