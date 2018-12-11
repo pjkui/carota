@@ -71,7 +71,9 @@ var prototype = node.derive({
       this.parts(function(wordPart) {
         runs.pieceCharacters(function(char) {
           var charRun = Object.create(wordPart.run);
-          charRun.text = char;
+          // charRun.text = char;
+          Object.defineProperty(charRun, 'text', { value: char });
+
           var p = part(charRun, codes);
           cache.push(Object.create(positionedChar, {
             left: { value: x },
