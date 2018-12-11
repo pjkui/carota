@@ -19,7 +19,6 @@ var prototype = {
         var run = self._runs[runIndex];
 
         if (run) {
-          run.text = run.text && run.text.trim();
           var start = (runIndex === self._run) ? self._offset : 0;
           var stop = (runIndex === upTo._run) ? upTo._offset : runs.getTextLength(run.text);
           if (start < stop) {
