@@ -69,10 +69,12 @@ var prototype = {
           } else if (start < text.length) {
             var pieceRun = Object.create(run);
             var firstChar = Math.max(0, start);
-            pieceRun.text = text.substr(
+            var tempText = text.substr(
                 firstChar,
                 Math.min(text.length, end - firstChar)
             );
+            // pieceRun.text = tempText;
+            Object.defineProperty(pieceRun, 'text', { value: tempText });
             emit(pieceRun);
           }
           start -= text.length;
