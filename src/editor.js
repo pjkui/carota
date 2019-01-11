@@ -509,8 +509,18 @@ exports.create = function(element, width, height,
   function registerMouseEvent(name, handler) {
     dom.handleMouseEvent(spacer, name, function(ev, x, y) {
       // support scale
-      x = x / window.carota.scale;
-      y = y / window.carota.scale;
+      let xScale =( window.carota && window.carota.scale) || 0;
+      let yScale = xScale;
+      if (doc.canvas) {
+        if (doc.canvas.width && doc.canvas.offsetWidth) {
+          xScale = doc.canvas.offsetWidth/doc.canvas.width;
+        }
+        if (doc.canvas.height && doc.canvas.offsetHeight) {
+          yScale = doc.canvas.offsetHeight/doc.canvas.height;
+        }
+      }
+      x = x / xScale;
+      y = y / yScale;
       handler(doc.byCoordinate(x, y - getVerticalOffset()));
     });
   }
