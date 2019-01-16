@@ -519,8 +519,8 @@ exports.create = function(element, width, height,
           yScale = doc.canvas.offsetHeight/doc.canvas.height;
         }
       }
-      x = x / xScale;
-      y = y / yScale;
+      x = x / xScale / window.devicePixelRatio;
+      y = y / yScale / window.devicePixelRatio;
       handler(doc.byCoordinate(x, y - getVerticalOffset()));
     });
   }
