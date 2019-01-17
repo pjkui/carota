@@ -22,7 +22,7 @@ exports.clone = function(run) {
   var result = { text: run.text };
   exports.formattingKeys.forEach(function(key) {
     var val = run[key];
-    if (val && val != exports.defaultFormatting[key]) {
+    if (val && val != (window.carota && window.carota.defaultFormatting && window.carota.defaultFormatting[key]) || exports.defaultFormatting[key]) {
       result[key] = val;
     }
   });

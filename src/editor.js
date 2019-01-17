@@ -71,7 +71,7 @@ exports.create = function(element, width, height,
         '</div>' +
         '<div class="carotaTextArea" style="overflow: hidden; position: absolute; height: 0;">' +
         '<textarea autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="0" ' +
-        'style="position: absolute; padding: 0px; width: 1000px; height: 1em; ' +
+        'style="position: absolute; padding: 0px; width: 600px; height: 1em; ' +
         'outline: none; font-size: 4px;"></textarea>'+
         '</div>';
 
@@ -466,8 +466,10 @@ exports.create = function(element, width, height,
     focusChar = null;
     if (endChar) {
       var bounds = endChar.bounds();
-      textAreaDiv.style.left = bounds.l + 'px';
-      textAreaDiv.style.top = bounds.t + 'px';
+      // textAreaDiv.style.left = bounds.l + 'px';
+      textAreaDiv.style.left = '0px';
+      // textAreaDiv.style.top = bounds.t + 'px';
+      textAreaDiv.style.top = '0px';
       textArea.focus();
       var scrollDownBy = Math.max(0, bounds.t + bounds.h -
         (element.scrollTop + elementHeight));
