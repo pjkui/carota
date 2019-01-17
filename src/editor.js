@@ -463,13 +463,21 @@ exports.create = function(element, width, height,
   var updateTextArea = function() {
     focusChar = focusChar === null ? doc.selection.end : focusChar;
     var endChar = doc.byOrdinal(focusChar);
+    const options = (window.carota && window.carota.options) || {};
     focusChar = null;
     if (endChar) {
       var bounds = endChar.bounds();
-      // textAreaDiv.style.left = bounds.l + 'px';
-      textAreaDiv.style.left = '0px';
-      // textAreaDiv.style.top = bounds.t + 'px';
-      textAreaDiv.style.top = '0px';
+      if (options && options.allowScrollH) {
+        textAreaDiv.style.left = (bounds.l / window.devicePixelRatio) + 'px';
+      } else {
+        textAreaDiv.style.left = '0px';
+      }
+
+      if (options && options.allowScrollV) {
+        textAreaDiv.style.top = (bounds.t / window.devicePixelRatio) + 'px';
+      } else {
+        textAreaDiv.style.top = '0px';
+      }
       textArea.focus();
       var scrollDownBy = Math.max(0, bounds.t + bounds.h -
         (element.scrollTop + elementHeight));

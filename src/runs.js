@@ -19,10 +19,12 @@ exports.sameFormatting = function(run1, run2) {
 };
 
 exports.clone = function(run) {
-  var result = { text: run.text };
+  var result = {
+    text: run.text,
+  };
   exports.formattingKeys.forEach(function(key) {
     var val = run[key];
-    if (val && val != (window.carota && window.carota.defaultFormatting && window.carota.defaultFormatting[key]) || exports.defaultFormatting[key]) {
+    if (val && val != (window.carota && window.carota.options && window.carota.options.defaultFormatting && window.carota.options.defaultFormatting[key]) || exports.defaultFormatting[key]) {
       result[key] = val;
     }
   });
@@ -69,8 +71,8 @@ exports.consolidate = function() {
   var current;
   return function(emit, run) {
     if (!current || !exports.sameFormatting(current, run) ||
-            (typeof current.text != 'string') ||
-            (typeof run.text != 'string')) {
+      (typeof current.text != 'string') ||
+      (typeof run.text != 'string')) {
       current = exports.clone(run);
       emit(current);
     } else {
