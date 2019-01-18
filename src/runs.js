@@ -11,7 +11,7 @@ exports.defaultFormatting = {
   align: 'left',
   script: 'normal',
 };
-exports.getDefaultFormating = function() {
+exports.getDefaultFormatting = function() {
   const gloableSetting = (window.carota && window.carota.options && window.carota.options.defaultFormatting && window.carota.options.defaultFormatting) || {};
   exports.defaultFormatting = Object.assign(exports.defaultFormatting, gloableSetting);
   return exports.defaultFormatting;
