@@ -362,7 +362,7 @@
             // When the selected range coordinates change, update the control
             exampleEditor.selectionChanged(function(getFormatting) {
                 var formatting = getFormatting();
-                var val = id in formatting ? formatting[id] : carota.runs.defaultFormatting[id];
+                var val = id in formatting ? formatting[id] : carota.runs.getDefaultFormatting()[id];
                 if (elem.nodeName === 'INPUT') {
                     if (val === carota.runs.multipleValues) {
                         elem.indeterminate = true;

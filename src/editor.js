@@ -607,6 +607,7 @@ exports.create = function(element, width, height,
 
   var dispose = function() {
     dom.removeAllEvents();
+    window.carota && (window.carota.instance = null);
   };
 
   dom.handleEvent(canvas, 'carotaEditorSharedTimer', update);

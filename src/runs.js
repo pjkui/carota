@@ -11,7 +11,11 @@ exports.defaultFormatting = {
   align: 'left',
   script: 'normal',
 };
-
+exports.getDefaultFormating = function() {
+  const gloableSetting = (window.carota && window.carota.options && window.carota.options.defaultFormatting && window.carota.options.defaultFormatting) || {};
+  exports.defaultFormatting = Object.assign(exports.defaultFormatting, gloableSetting);
+  return exports.defaultFormatting;
+};
 exports.sameFormatting = function(run1, run2) {
   return exports.formattingKeys.every(function(key) {
     return run1[key] === run2[key];
@@ -24,7 +28,7 @@ exports.clone = function(run) {
   };
   exports.formattingKeys.forEach(function(key) {
     var val = run[key];
-    if (val && val != (window.carota && window.carota.options && window.carota.options.defaultFormatting && window.carota.options.defaultFormatting[key]) || exports.defaultFormatting[key]) {
+    if (val && val != exports.getDefaultFormatting()[key]) {
       result[key] = val;
     }
   });

@@ -63,7 +63,7 @@ Range.prototype.getFormatting = function() {
     range.start = pos;
     range.end = pos + 1;
   }
-  return per(range.runs, range).reduce(runs.merge).last() || runs.defaultFormatting;
+  return per(range.runs, range).reduce(runs.merge).last() || runs.getDefaultFormatting();
 };
 
 Range.prototype.setFormatting = function(attribute, value) {
