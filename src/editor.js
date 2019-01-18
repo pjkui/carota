@@ -503,7 +503,7 @@ exports.create = function(element, width, height,
     textArea.select();
 
     setTimeout(function() {
-      textArea.focus();
+      textArea && textArea.focus();
     }, 10);
   };
 
@@ -607,7 +607,11 @@ exports.create = function(element, width, height,
 
   var dispose = function() {
     dom.removeAllEvents();
-    window.carota && (window.carota.instance = null);
+    textArea = null;
+    textAreaDiv = null;
+    canvas = null;
+    spacer = null;
+    containerDom = null;
   };
 
   dom.handleEvent(canvas, 'carotaEditorSharedTimer', update);
