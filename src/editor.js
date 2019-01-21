@@ -365,6 +365,10 @@ exports.create = function(element, width, height,
   }
 
   var paint = function() {
+    if (doc._isDispose) {
+      console.warn('Warning: a disposed editor instance is called. please check your code!');
+      return;
+    }
     var availableWidth = elementWidth * 1; // adjust to 0.5 to see if we draw in the wrong places!
     if (doc.width() !== availableWidth) {
       doc.width(availableWidth);
@@ -461,6 +465,11 @@ exports.create = function(element, width, height,
   });
 
   var updateTextArea = function() {
+    if (doc._isDispose) {
+      console.warn('Warning: a disposed editor instance is called. please check your code!');
+      return;
+    }
+
     focusChar = focusChar === null ? doc.selection.end : focusChar;
     var endChar = doc.byOrdinal(focusChar);
     const options = (window.carota && window.carota.options) || {};
@@ -612,6 +621,7 @@ exports.create = function(element, width, height,
     canvas = null;
     spacer = null;
     containerDom = null;
+    doc._isDispose = true;
   };
 
   dom.handleEvent(canvas, 'carotaEditorSharedTimer', update);
