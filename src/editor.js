@@ -620,7 +620,7 @@ exports.create = function(element, width, height,
     textAreaDiv = null;
     canvas = null;
     spacer = null;
-    containerDom = null;
+    element = null;
     doc._isDispose = true;
   };
 
